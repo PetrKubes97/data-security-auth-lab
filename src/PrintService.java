@@ -2,10 +2,14 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface PrintService extends Remote {
+	
+	void createPrinters() throws RemoteException;
+	
+	
     String echo(String input) throws RemoteException;
 
     String login(String username, String password) throws RemoteException;
-
+    
     // prints file filename on the specified printer
     void print(String filename, String printer) throws RemoteException;
 
@@ -32,4 +36,6 @@ public interface PrintService extends Remote {
 
     // sets the parameter to value
     void setConfig(String parameter, String value) throws RemoteException;
+
+
 }

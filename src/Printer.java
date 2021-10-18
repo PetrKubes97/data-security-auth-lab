@@ -3,14 +3,17 @@ import java.util.ArrayList;
 public class Printer {
 
 	public static ArrayList<String> fileNames;
+	public static String printerName;
+	
+	public Printer(String name, int sizeOfQueue)
+	{
+		fileNames = new ArrayList<String>(sizeOfQueue);
+		printerName = name;
+	}
 	
 	public static void addFile(String filename)
 	{
 		fileNames.add(filename);
-	}
-	public static void createPrinter()
-	{
-		fileNames = new ArrayList<String>(50);
 	}
 	
 	public static void moveFirstInQueue(int jobId)
@@ -27,14 +30,21 @@ public class Printer {
 		if(itemPos != 0)
 		{
 			fileNames.remove(itemPos);
-		}
-		
+		}	
 	}
+	/*public static ArrayList getArrList()
+	{
+		
+		return fileNames;
+	}*/
+	
+	
 	
 	public static void main(String[] args) {
-		
-		createPrinter();
-		addFile("File1");
+		//Helper Functions Tests
+		//createPrinter();
+		//Printer("Printer1",50);
+		/*addFile("File1");
 		addFile("File2");
 		addFile("File3");
 		addFile("File4");
@@ -60,7 +70,7 @@ public class Printer {
 			System.out.println(element);
 		}
 	
-		
+		*/
 		// TODO Auto-generated method stub
 
 	}
