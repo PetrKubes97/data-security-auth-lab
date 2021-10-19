@@ -2,8 +2,8 @@ import java.util.ArrayList;
 
 public class Printer {
 
-	public static ArrayList<String> fileNames;
-	public static String printerName;
+	public ArrayList<String> fileNames;
+	public String printerName;
 	
 	public Printer(String name, int sizeOfQueue)
 	{
@@ -11,20 +11,19 @@ public class Printer {
 		printerName = name;
 	}
 	
-	public static void addFile(String filename)
+	public void addFile(String filename)
 	{
 		fileNames.add(filename);
 	}
 	
-	public static void moveFirstInQueue(int jobId)
+	public void moveFirstInQueue(int jobId)
 	{
-	  //  int itemPos = filenames.indexOf(filename);
 		String fileName = fileNames.get(jobId);
 	    fileNames.remove(jobId);
 	    fileNames.add(0, fileName);
 
 	}
-	public static void deleteFile(String fileName)
+	public void deleteFile(String fileName)
 	{
 		int itemPos = fileNames.indexOf(fileName);
 		if(itemPos != 0)
@@ -32,11 +31,14 @@ public class Printer {
 			fileNames.remove(itemPos);
 		}	
 	}
-	/*public static ArrayList getArrList()
+	public void listQueue()
 	{
+		for(int i = 0; i < fileNames.size(); i++)
+		{
+			System.out.println(fileNames.get(i));
+		}
 		
-		return fileNames;
-	}*/
+	}
 	
 	
 	

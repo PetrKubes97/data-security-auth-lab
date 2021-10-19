@@ -8,6 +8,8 @@ public class Client {
         try {
             PrintService server = (PrintService) Naming.lookup("rmi://127.0.0.1:5099/printer");
             System.out.println("----- " + server.echo("asdf"));
+            server.print("filename", "printer");
+            server.createPrinters();
         } catch (Exception e) {
             System.out.println(e.toString());
         }

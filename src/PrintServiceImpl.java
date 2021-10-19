@@ -23,7 +23,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         	Printers.get(i).addFile("File5");
         }
         
-        for(int i = 0; i<5; i++)
+       /* for(int i = 0; i<5; i++)
         {
         	System.out.println(" ");
         	System.out.println(Printers.get(i).printerName);
@@ -32,9 +32,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         	{
         		System.out.println(Printers.get(i).fileNames.get(a));
         	}
-        
-        	
-        }
+        }*/
         
     }
 	
@@ -52,23 +50,49 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         return null;
     }
 
+    // prints file filename on the specified printer
     @Override
     public void print(String filename, String printer) {
-    	 System.out.println(filename + printer);
-    	 
-    	 
-         
+    	int printerId = findPrinter(printer);
+    	
+    	if(printerId != -1)
+    	{
+    		//Todo Print
+    	}
 
     }
-
+    
+    // lists the print queue for a given printer on the user's display in lines of the form <job number>   <file name>
     @Override
     public void queue(String printer) {
+    	int printerId = findPrinter(printer);
     	
+    	if(printerId != -1)
+    	{
+    		Printers.get(printerId).listQueue();
+    	}
     }
 
     @Override
     public void topQueue(String printer, int job) {
-
+    	int printerId = findPrinter(printer);
+    	
+    	if(printerId != -1)
+    	{
+    		Printers.get(printerId).moveFirstInQueue(job);
+    	}
+    }
+    
+    public int findPrinter(String printer)
+    {
+    	for(int i = 0; i < Printers.size(); i++)
+    	{
+    		if(Printers.get(i).printerName == printer)
+    		{
+    			return i;
+    		}
+    	}
+    	return -1;
     }
 
     @Override
@@ -85,17 +109,18 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     public void restart() {
 
     }
-
+    
+    // prints status of printer on the user's display
     @Override
     public void status(String printer) {
 
     }
-
+    // prints the value of the parameter on the user's display
     @Override
     public void readConfig(String parameter) {
 
     }
-
+    // sets the parameter to value
     @Override
     public void setConfig(String parameter, String value) {
 
