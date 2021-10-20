@@ -71,7 +71,6 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     	if(isServerRunning() == false) {return;}
     	
     	int printerId = findPrinter(printer);
-    	
     	if(printerId != -1)
     	{
     		Printers.get(printerId).listQueue();
@@ -95,7 +94,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     {
     	for(int i = 0; i < Printers.size(); i++)
     	{
-    		if(Printers.get(i).printerName == printer)
+    		if(Printers.get(i).printerName.equals(printer))
     		{
     			return i;
     		}

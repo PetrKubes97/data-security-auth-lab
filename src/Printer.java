@@ -48,37 +48,6 @@ public class Printer {
 	
 	
 	public static void main(String[] args) {
-		//Helper Functions Tests
-		//createPrinter();
-		//Printer("Printer1",50);
-		/*addFile("File1");
-		addFile("File2");
-		addFile("File3");
-		addFile("File4");
-		addFile("File5");
-		for(String element : fileNames)
-		{
-			System.out.println(element);
-		}
-		System.out.println(" ");
-		System.out.println("Move First in Queue index 3");
-		System.out.println(" ");
-		moveFirstInQueue(3);
-		for(String element : fileNames)
-		{
-			System.out.println(element);
-		}
-		System.out.println(" ");
-		System.out.println("Delete File2");
-		System.out.println(" ");
-		deleteFile("File2");
-		for(String element : fileNames)
-		{
-			System.out.println(element);
-		}
-	
-		*/
-		// TODO Auto-generated method stub
 
 	}
 
