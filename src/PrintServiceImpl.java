@@ -4,8 +4,9 @@ import java.util.ArrayList;
 
 public class PrintServiceImpl extends UnicastRemoteObject implements PrintService {
 	
-	public static ArrayList<Printer> Printers;
+	public  ArrayList<Printer> Printers;
 	
+	private boolean PrinterRunning = true;
 	@Override
     public void createPrinters() {
 		Printers = new ArrayList<Printer>(10);
@@ -47,17 +48,19 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
 
     @Override
     public String login(String username, String password) {
+    	
         return null;
     }
 
     // prints file filename on the specified printer
     @Override
     public void print(String filename, String printer) {
+    	if(isServerRunning() == false) {return;}
     	int printerId = findPrinter(printer);
     	
     	if(printerId != -1)
     	{
-    		//Todo Print
+    		Printers.get(printerId).fileNames.add(filename);
     	}
 
     }
@@ -65,6 +68,8 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     // lists the print queue for a given printer on the user's display in lines of the form <job number>   <file name>
     @Override
     public void queue(String printer) {
+    	if(isServerRunning() == false) {return;}
+    	
     	int printerId = findPrinter(printer);
     	
     	if(printerId != -1)
@@ -75,6 +80,9 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
 
     @Override
     public void topQueue(String printer, int job) {
+    	if(isServerRunning() == false) {return;}
+    		
+    	
     	int printerId = findPrinter(printer);
     	
     	if(printerId != -1)
@@ -97,32 +105,49 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
 
     @Override
     public void start() {
-
+    	PrinterRunning = true;
+    	System.out.println("Print server started");
     }
 
     @Override
     public void stop() {
-
+    	PrinterRunning = false;
+    	System.out.println("Print server stopped");
     }
 
     @Override
     public void restart() {
-
+    	PrinterRunning = true;
+    	for(int i = 0; i < Printers.size(); i++)
+    	{
+    		Printers.get(i).restartPrinter();
+    	}
     }
     
+    public boolean isServerRunning()
+    {
+    	if(PrinterRunning == false)
+    	{
+    		System.out.println("Print server is not running");
+    	}
+    	return PrinterRunning;
+    }
     // prints status of printer on the user's display
     @Override
     public void status(String printer) {
+    	if(isServerRunning() == false) {return;}
 
     }
     // prints the value of the parameter on the user's display
     @Override
     public void readConfig(String parameter) {
+    	if(isServerRunning() == false) {return;}
 
     }
     // sets the parameter to value
     @Override
     public void setConfig(String parameter, String value) {
+    	if(isServerRunning() == false) {return;}
 
     }
 	

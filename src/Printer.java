@@ -40,6 +40,11 @@ public class Printer {
 		
 	}
 	
+	public void restartPrinter()
+	{
+		fileNames.clear();
+	}
+	
 	
 	
 	public static void main(String[] args) {
