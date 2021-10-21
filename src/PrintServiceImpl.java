@@ -4,42 +4,29 @@ import java.util.ArrayList;
 
 public class PrintServiceImpl extends UnicastRemoteObject implements PrintService {
 
-    public ArrayList<Printer> Printers;
+    private ArrayList<Printer> printers;
 
-    private boolean PrinterRunning = true;
-
-    @Override
-    public void createPrinters() {
-        Printers = new ArrayList<Printer>(10);
-        for (int i = 0; i < 5; i++) {
-            Printers.add(new Printer("printer" + Integer.toString(i), 50));
-        }
-
-        for (int i = 0; i < 5; i++) {
-            Printers.get(i).addFile("File1");
-            Printers.get(i).addFile("File2");
-            Printers.get(i).addFile("File3");
-            Printers.get(i).addFile("File4");
-            Printers.get(i).addFile("File5");
-        }
-        
-       /* for(int i = 0; i<5; i++)
-        {
-        	System.out.println(" ");
-        	System.out.println(Printers.get(i).printerName);
-        	
-        	for(int a = 0; a < 5; a++)
-        	{
-        		System.out.println(Printers.get(i).fileNames.get(a));
-        	}
-        }*/
-
-    }
+    private boolean printersServerRunning = true;
 
     public PrintServiceImpl() throws RemoteException {
         super();
+        createPrinters();
     }
 
+    private void createPrinters() {
+        printers = new ArrayList<>(10);
+        for (int i = 0; i < 5; i++) {
+            Printer newPrinter = new Printer("printer" + i, 50);
+            newPrinter.addFile("File1");
+            newPrinter.addFile("File2");
+            newPrinter.addFile("File5");
+            newPrinter.addFile("File3");
+            newPrinter.addFile("File4");
+            printers.add(newPrinter);
+        }
+    }
+
+    @Override
     public String echo(String input) throws RemoteException {
         System.out.println("echo");
         return "From server: " + input;
@@ -47,20 +34,19 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
 
     @Override
     public String login(String username, String password) {
-
         return null;
     }
 
     // prints file filename on the specified printer
     @Override
     public void print(String filename, String printer) {
-        if (isServerRunning() == false) {
+        if (isSeverTurnedOff()) {
             return;
         }
         int printerId = findPrinter(printer);
 
         if (printerId != -1) {
-            Printers.get(printerId).fileNames.add(filename);
+            printers.get(printerId).fileNames.add(filename);
         }
 
     }
@@ -68,19 +54,19 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     // lists the print queue for a given printer on the user's display in lines of the form <job number>   <file name>
     @Override
     public void queue(String printer) {
-        if (isServerRunning() == false) {
+        if (isSeverTurnedOff()) {
             return;
         }
 
         int printerId = findPrinter(printer);
         if (printerId != -1) {
-            Printers.get(printerId).listQueue();
+            printers.get(printerId).listQueue();
         }
     }
 
     @Override
     public void topQueue(String printer, int job) {
-        if (isServerRunning() == false) {
+        if (isSeverTurnedOff()) {
             return;
         }
 
@@ -88,13 +74,13 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         int printerId = findPrinter(printer);
 
         if (printerId != -1) {
-            Printers.get(printerId).moveFirstInQueue(job);
+            printers.get(printerId).moveFirstInQueue(job);
         }
     }
 
-    public int findPrinter(String printer) {
-        for (int i = 0; i < Printers.size(); i++) {
-            if (Printers.get(i).printerName.equals(printer)) {
+    private int findPrinter(String printer) {
+        for (int i = 0; i < printers.size(); i++) {
+            if (printers.get(i).printerName.equals(printer)) {
                 return i;
             }
         }
@@ -103,35 +89,35 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
 
     @Override
     public void start() {
-        PrinterRunning = true;
+        printersServerRunning = true;
         System.out.println("Print server started");
     }
 
     @Override
     public void stop() {
-        PrinterRunning = false;
+        printersServerRunning = false;
         System.out.println("Print server stopped");
     }
 
     @Override
     public void restart() {
-        PrinterRunning = true;
-        for (int i = 0; i < Printers.size(); i++) {
-            Printers.get(i).restartPrinter();
+        printersServerRunning = true;
+        for (Printer printer : printers) {
+            printer.restartPrinter();
         }
     }
 
-    public boolean isServerRunning() {
-        if (PrinterRunning == false) {
+    private boolean isSeverTurnedOff() {
+        if (!printersServerRunning) {
             System.out.println("Print server is not running");
         }
-        return PrinterRunning;
+        return !printersServerRunning;
     }
 
     // prints status of printer on the user's display
     @Override
     public void status(String printer) {
-        if (isServerRunning() == false) {
+        if (isSeverTurnedOff()) {
             return;
         }
 
@@ -140,7 +126,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     // prints the value of the parameter on the user's display
     @Override
     public void readConfig(String parameter) {
-        if (isServerRunning() == false) {
+        if (isSeverTurnedOff()) {
             return;
         }
 
@@ -149,7 +135,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     // sets the parameter to value
     @Override
     public void setConfig(String parameter, String value) {
-        if (isServerRunning() == false) {
+        if (isSeverTurnedOff()) {
             return;
         }
 

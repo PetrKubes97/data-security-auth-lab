@@ -10,11 +10,10 @@ public class Client {
     private static PrintService server;
     private static Scanner scanner;
 
-    public static void main(String[] args) throws NotBoundException, MalformedURLException, RemoteException {
+    public static void main(String[] args) {
         try {
             server = (PrintService) Naming.lookup("rmi://127.0.0.1:5099/printer");
             System.out.println("----- " + server.echo("asdf"));
-            server.createPrinters();
             loginPrompt();
             commandPrompt();
 
@@ -43,95 +42,96 @@ public class Client {
             System.out.print("Enter command: ");
             command = scanner.nextLine();
             processCommand(command.toLowerCase());
-        } while (command != "q");// && command != "Q" && command != "quit");
+        } while (!command.equals("q"));// && command != "Q" && command != "quit");
 
     }
 
     public static void processCommand(String command) {
-        String filename = "", printer = "", jobId = "";
-
-        if (command.equals("print")) {
-            System.out.print("Enter filename:");
-            filename = scanner.nextLine();
-            System.out.print("Enter printer name:");
-            filename = scanner.nextLine();
-            try {
-                server.print(filename, printer);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-            return;
-        } else if (command.equals("queue")) {
-            System.out.print("Enter printer name:");
-            printer = scanner.nextLine();
-            try {
-                server.queue(printer);
-            } catch (RemoteException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-
-            return;
-        } else if (command.equals("top queue") || command.equals("topqueue")) {
-
-            System.out.print("Enter printer name:");
-            printer = scanner.nextLine();
-
-            System.out.print("Enter job id:");
-            jobId = scanner.nextLine();
-            try {
-                server.topQueue(printer, Integer.valueOf(jobId));
-            } catch (NumberFormatException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (RemoteException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-
-            return;
-        } else if (command.equals("start")) {
-            try {
-                server.start();
-            } catch (RemoteException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            return;
-        } else if (command.equals("stop")) {
-            try {
-                server.stop();
+        switch (command) {
+            case "print": {
+                final String filename = genericPrompt("Enter filename:");
+                final String printer = printerNamePrompt();
+                try {
+                    server.print(filename, printer);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
                 return;
-            } catch (RemoteException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
             }
-            return;
-        } else if (command.equals("restart")) {
-            try {
-                server.restart();
-            } catch (RemoteException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            case "queue": {
+                final String printer = printerNamePrompt();
+                try {
+                    server.queue(printer);
+                } catch (RemoteException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+                return;
             }
-            return;
-        } else if (command.equals("status")) {
-            try {
-                server.status(printer);
-            } catch (RemoteException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            case "top queue":
+            case "topqueue": {
+                final String printer = printerNamePrompt();
+                final String jobId = genericPrompt("Enter job id:");
+                try {
+                    server.topQueue(printer, Integer.parseInt(jobId));
+                } catch (NumberFormatException | RemoteException e) {
+                    e.printStackTrace();
+                }
+
+                return;
             }
-            return;
-        } else if (command.equals("read config") || command.equals("readconfig")) {
-            //server.readConfig(scanner);
-            return;
-        } else if (command.equals("set config") || command.equals("setconfig")) {
-            //server.setConfig(scanner, config);
-            return;
+            case "start":
+                try {
+                    server.start();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+                return;
+            case "stop":
+                try {
+                    server.stop();
+                    return;
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+                return;
+            case "restart":
+                try {
+                    server.restart();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+                return;
+            case "status":
+                final String printer = printerNamePrompt();
+                try {
+                    server.status(printer);
+                } catch (RemoteException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                return;
+            case "read config":
+            case "readconfig":
+                //server.readConfig(scanner);
+                return;
+            case "set config":
+            case "setconfig":
+                //server.setConfig(scanner, config);
+                return;
         }
 
         System.out.println("Command not found");
+    }
+
+    private static String genericPrompt(String text) {
+        System.out.print(text);
+        return scanner.nextLine();
+    }
+
+    private static String printerNamePrompt() {
+        return genericPrompt("Enter printer name:");
     }
 
     public static boolean verifyLogin(String username, String password) {

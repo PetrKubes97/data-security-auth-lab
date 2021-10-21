@@ -3,9 +3,6 @@ import java.rmi.RemoteException;
 
 public interface PrintService extends Remote {
 
-    void createPrinters() throws RemoteException;
-
-
     String echo(String input) throws RemoteException;
 
     String login(String username, String password) throws RemoteException;

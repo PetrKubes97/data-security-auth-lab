@@ -2,11 +2,11 @@ import java.util.ArrayList;
 
 public class Printer {
 
-    public ArrayList<String> fileNames;
-    public String printerName;
+    final ArrayList<String> fileNames;
+    final String printerName;
 
     public Printer(String name, int sizeOfQueue) {
-        fileNames = new ArrayList<String>(sizeOfQueue);
+        fileNames = new ArrayList<>(sizeOfQueue);
         printerName = name;
     }
 
@@ -32,16 +32,10 @@ public class Printer {
         for (int i = 0; i < fileNames.size(); i++) {
             System.out.println(fileNames.get(i));
         }
-
     }
 
     public void restartPrinter() {
         fileNames.clear();
-    }
-
-
-    public static void main(String[] args) {
-
     }
 
 }
