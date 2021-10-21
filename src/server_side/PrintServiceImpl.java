@@ -1,6 +1,14 @@
+package server_side;
+
+import server_side.data.UserRecord;
+
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 public class PrintServiceImpl extends UnicastRemoteObject implements PrintService {
 
@@ -33,8 +41,36 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     }
 
     @Override
-    public String login(String username, String password) {
-        return null;
+    public LoginResult login(String username, String password) {
+        try {
+            final List<UserRecord> users = loadUsersFromFile();
+            for (UserRecord user : users) {
+                if (user.name().equals(username) && user.password().equals(password)) {
+                    return LoginResult.SUCCESS;
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+
+        }
+
+        return LoginResult.FAILURE;
+    }
+
+    private List<UserRecord> loadUsersFromFile() throws FileNotFoundException {
+        File file = new File("Login.txt");
+        Scanner scanner2 = new Scanner(file);
+        scanner2.useDelimiter("[,\n]");
+
+        ArrayList<UserRecord> users = new ArrayList<>();
+
+        while (scanner2.hasNext()) {
+            final String username = scanner2.next().trim();
+            final String password = scanner2.next().trim();
+            users.add(new UserRecord(username, password));
+        }
+
+        return users;
     }
 
     // prints file filename on the specified printer

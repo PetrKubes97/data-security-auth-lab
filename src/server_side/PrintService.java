@@ -1,11 +1,19 @@
+package server_side;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface PrintService extends Remote {
 
+    enum LoginResult {
+        SUCCESS,
+        TOO_MANY_ATTEMPTS,
+        FAILURE
+    }
+
     String echo(String input) throws RemoteException;
 
-    String login(String username, String password) throws RemoteException;
+    LoginResult login(String username, String password) throws RemoteException;
 
     // prints file filename on the specified printer
     void print(String filename, String printer) throws RemoteException;

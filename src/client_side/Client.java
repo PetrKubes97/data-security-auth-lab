@@ -1,7 +1,8 @@
-import java.io.File;
-import java.net.MalformedURLException;
+package client_side;
+
+import server_side.PrintService;
+
 import java.rmi.Naming;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Scanner;
 
@@ -22,7 +23,7 @@ public class Client {
         }
     }
 
-    public static void loginPrompt() {
+    public static void loginPrompt() throws RemoteException {
         String username = "", password = "";
         scanner = new Scanner(System.in);
 
@@ -32,7 +33,7 @@ public class Client {
 
             System.out.print("Enter password:");
             password = scanner.nextLine();
-        } while (!verifyLogin(username, password));
+        } while (server.login(username, password) != PrintService.LoginResult.SUCCESS);
 
     }
 
@@ -133,32 +134,4 @@ public class Client {
     private static String printerNamePrompt() {
         return genericPrompt("Enter printer name:");
     }
-
-    public static boolean verifyLogin(String username, String password) {
-        boolean foundUser = false;
-        try {
-            //Scanner scanner2 = new Scanner(System.in);
-
-            File file = new File("Login.txt");
-            Scanner scanner2 = new Scanner(file);
-            scanner2.useDelimiter("[,\n]");
-
-
-            while (scanner2.hasNext() && !foundUser) {
-                if (scanner2.next().trim().equals(username) && scanner2.next().trim().equals(password)) {
-
-                    System.out.println("Login successful");
-                    //scanner2.close();
-                    return true;
-                }
-            }
-            scanner2 = new Scanner(System.in);
-            //scanner2.close();
-            System.out.println("Wrong username or password");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
 }
