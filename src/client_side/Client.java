@@ -37,7 +37,7 @@ public class Client {
 
     }
 
-    public static void commandPrompt() {
+    public static void commandPrompt() throws RemoteException {
         String command = "";
         do {
             System.out.print("Enter command: ");
@@ -47,71 +47,38 @@ public class Client {
 
     }
 
-    public static void processCommand(String command) {
+    public static void processCommand(String command) throws RemoteException {
         switch (command) {
             case "print": {
                 final String filename = genericPrompt("Enter filename:");
                 final String printer = printerNamePrompt();
-                try {
-                    server.print(filename, printer);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
+                server.print(filename, printer);
                 return;
             }
             case "queue": {
                 final String printer = printerNamePrompt();
-                try {
-                    server.queue(printer);
-                } catch (RemoteException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
+                server.queue(printer);
                 return;
             }
             case "top queue":
             case "topqueue": {
                 final String printer = printerNamePrompt();
                 final String jobId = genericPrompt("Enter job id:");
-                try {
-                    server.topQueue(printer, Integer.parseInt(jobId));
-                } catch (NumberFormatException | RemoteException e) {
-                    e.printStackTrace();
-                }
-
+                server.topQueue(printer, Integer.parseInt(jobId));
                 return;
             }
             case "start":
-                try {
-                    server.start();
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
+                server.start();
                 return;
             case "stop":
-                try {
-                    server.stop();
-                    return;
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
+                server.stop();
                 return;
             case "restart":
-                try {
-                    server.restart();
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
+                server.restart();
                 return;
             case "status":
                 final String printer = printerNamePrompt();
-                try {
-                    server.status(printer);
-                } catch (RemoteException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+                server.status(printer);
                 return;
             case "read config":
             case "readconfig":
