@@ -30,10 +30,12 @@ public class Printer {
         }
     }
 
-    public void listQueue() {
+    public String listQueue() {
+    	String ret = "";
         for (int i = 0; i < fileNames.size(); i++) {
-            System.out.println(fileNames.get(i));
+            ret += Integer.toString(i) + " " + fileNames.get(i) + "\n";
         }
+        return ret;
     }
 
     public void restartPrinter() {

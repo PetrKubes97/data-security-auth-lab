@@ -57,7 +57,7 @@ public class Client {
             }
             case "queue": {
                 final String printer = printerNamePrompt();
-                server.queue(printer);
+                queue(printer);
                 return;
             }
             case "top queue":
@@ -78,7 +78,7 @@ public class Client {
                 return;
             case "status":
                 final String printer = printerNamePrompt();
-                server.status(printer);
+                System.out.println(server.status(printer));
                 return;
             case "read config":
             case "readconfig":
@@ -91,6 +91,9 @@ public class Client {
         }
 
         System.out.println("Command not found");
+    }
+    private static void queue(String printer) throws RemoteException {
+    	System.out.println(server.queue(printer));
     }
 
     private static String genericPrompt(String text) {

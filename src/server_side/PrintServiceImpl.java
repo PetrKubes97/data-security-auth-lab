@@ -1,6 +1,6 @@
 package server_side;
 
-import server_side.data.UserRecord;
+import server_side.data.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -89,15 +89,16 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
 
     // lists the print queue for a given printer on the user's display in lines of the form <job number>   <file name>
     @Override
-    public void queue(String printer) {
+    public String queue(String printer) {
         if (isSeverTurnedOff()) {
-            return;
+            return "";
         }
 
         int printerId = findPrinter(printer);
         if (printerId != -1) {
-            printers.get(printerId).listQueue();
+            return printers.get(printerId).listQueue();
         }
+        return "";
     }
 
     @Override
@@ -105,10 +106,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         if (isSeverTurnedOff()) {
             return;
         }
-
-
         int printerId = findPrinter(printer);
-
         if (printerId != -1) {
             printers.get(printerId).moveFirstInQueue(job);
         }
@@ -152,10 +150,11 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
 
     // prints status of printer on the user's display
     @Override
-    public void status(String printer) {
-        if (isSeverTurnedOff()) {
-            return;
+    public String status(String printer) {
+        if (printersServerRunning) {
+            return "Print server: Online";
         }
+        return "Print server: Offline";
 
     }
 
