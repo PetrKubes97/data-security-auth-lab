@@ -2,13 +2,22 @@ package server_side;
 
 import server_side.data.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+import java.security.SecureRandom;
 import java.util.Scanner;
+import org.bouncycastle.jcajce.provider.digest.SHA3;
+import org.bouncycastle.util.encoders.Hex;
+//import org.junit.Test;
 
 public class PrintServiceImpl extends UnicastRemoteObject implements PrintService {
 
@@ -39,19 +48,72 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         System.out.println("echo");
         return "From server: " + input;
     }
-
+    
+    private String createHashPassword(String password){
+    	 SHA3.DigestSHA3 digestSHA3 = new SHA3.Digest512();
+    	 byte[] digest = digestSHA3.digest(password.getBytes());
+    	 byte[] salt = new byte[50];
+    	 salt = getNextSalt();
+    	 //To do Save salt, pw and user in txt?
+    	 ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+    	 
+    	 //To do Fix:
+    	 try {
+			outputStream.write(salt);
+			outputStream.write(digest);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	 
+    	byte saltedPassword[] =  outputStream.toByteArray();
+    	
+    	return Hex.toHexString(saltedPassword );
+    }
+    
+    private String getHashPassword(String salt, String password){
+    	 SHA3.DigestSHA3 digestSHA3 = new SHA3.Digest512();
+    	 byte[] digest = digestSHA3.digest(password.getBytes());	
+    	 ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+    	 
+    	 //To do Fix:
+    	 try {
+			outputStream.write(salt.getBytes());
+			outputStream.write(digest);
+		 } catch (IOException e) {
+				
+			e.printStackTrace();
+		 }
+    	 
+    	byte saltedPassword[] =  outputStream.toByteArray( );
+    	return Hex.toHexString(saltedPassword );
+    }
+    
+    public static byte[] getNextSalt() {
+    	SecureRandom rand = new SecureRandom();
+    	byte salt[] = new byte[50];
+    	rand.nextBytes(salt);
+    	
+        return salt;
+      }
+    
+    //Pw and usernames
+    //user,pass
+    //test,test
+    //user1,pass1
+    
     @Override
-    public LoginResult login(String username, String password) {
+    public LoginResult login(String username, String password){
         try {
             final List<UserRecord> users = loadUsersFromFile();
+            String saltedPassword;
             for (UserRecord user : users) {
-                if (user.name().equals(username) && user.password().equals(password)) {
+            	saltedPassword = getHashPassword(user.salt(), password);
+                if (user.name().equals(username) && user.password().equals(saltedPassword)) {
                     return LoginResult.SUCCESS;
                 }
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-
         }
 
         return LoginResult.FAILURE;
@@ -67,7 +129,8 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         while (scanner2.hasNext()) {
             final String username = scanner2.next().trim();
             final String password = scanner2.next().trim();
-            users.add(new UserRecord(username, password));
+            final String salt = scanner2.next().trim();
+            users.add(new UserRecord(username, password, salt));
         }
 
         return users;

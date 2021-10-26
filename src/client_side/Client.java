@@ -1,7 +1,6 @@
 package client_side;
 
 import server_side.PrintService;
-
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.util.Scanner;
@@ -30,7 +29,6 @@ public class Client {
         do {
             System.out.print("Enter username:");
             username = scanner.nextLine();
-
             System.out.print("Enter password:");
             password = scanner.nextLine();
         } while (server.login(username, password) != PrintService.LoginResult.SUCCESS);
