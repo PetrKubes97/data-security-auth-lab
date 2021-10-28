@@ -46,6 +46,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
 
     private Boolean limitUserGuesses(String username) throws IOException {
         final UserRecord user = database.loadUserByUsername(username);
+        if (user == null) return false;
 
         LocalDateTime currentDateTime = LocalDateTime.now();
         LocalDateTime minusFiveMin = currentDateTime.minusMinutes(5);

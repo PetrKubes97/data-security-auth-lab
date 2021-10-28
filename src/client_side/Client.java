@@ -24,13 +24,25 @@ public class Client {
         String username = "", password = "";
         scanner = new Scanner(System.in);
 
-        do {
+        loginLoop: while (true) {
             System.out.print("Enter username:");
             username = scanner.nextLine();
             System.out.print("Enter password:");
             password = scanner.nextLine();
-        } while (server.login(username, password) != PrintService.LoginResult.SUCCESS);
 
+            PrintService.LoginResult result = server.login(username, password);
+            switch (result) {
+                case SUCCESS -> {
+                    break loginLoop;
+                }
+                case TOO_MANY_ATTEMPTS -> {
+                    System.out.println("Too many attempts, try again in 5 minutes");
+                }
+                case FAILURE -> {
+                    System.out.println("Wrong username or password");
+                }
+            }
+        }
     }
 
     public static void commandPrompt() throws RemoteException {
