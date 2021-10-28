@@ -19,7 +19,8 @@ public class CreateUsers {
                 LocalDateTime.now().minusDays(1),
                 0,
                 createPasswordHash( salt1, "pass"),
-                salt1
+                salt1,
+                ""
         );
         db.insertUser(user1);
 
@@ -29,7 +30,8 @@ public class CreateUsers {
                 LocalDateTime.now().minusDays(1),
                 0,
                 createPasswordHash( salt2, "test"),
-                salt2
+                salt2,
+                ""
         );
         db.insertUser(user2);
     }

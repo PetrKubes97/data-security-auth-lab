@@ -24,6 +24,16 @@ public class FileDatabase {
         return null;
     }
 
+    public UserRecord loadUserByAccessToken(String accessToken) throws FileNotFoundException {
+        final List<UserRecord> allUsers = loadAllUsers();
+        for (UserRecord user : allUsers) {
+            if (user.accessToken().equals(accessToken)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
     public List<UserRecord> loadAllUsers() throws FileNotFoundException {
         Scanner scanner = new Scanner(file);
         scanner.useDelimiter("\n");
@@ -80,13 +90,20 @@ public class FileDatabase {
         insertUser(updatedUserRecord);
     }
 
-    public void updateLoginInfo(UserRecord userRecord, Integer newAttempts, LocalDateTime newAttemptTime) throws IOException {
+
+    public void loginUpdate(UserRecord userRecord, Integer newAttempts, LocalDateTime newAttemptTime) throws IOException {
+        loginUpdate(userRecord, newAttempts, newAttemptTime, userRecord.accessToken());
+    }
+
+    public void loginUpdate(UserRecord userRecord, Integer newAttempts, LocalDateTime newAttemptTime, String accessToken) throws IOException {
+        // This is unfortunate, I was thinking that java records are like kotlin data classes, but apparently they are very dumb
         final UserRecord updatedUser = new UserRecord(
                 userRecord.name(),
                 newAttemptTime,
                 newAttempts,
                 userRecord.hashedPassword(),
-                userRecord.salt()
+                userRecord.salt(),
+                accessToken
         );
         updateUser(updatedUser);
     }

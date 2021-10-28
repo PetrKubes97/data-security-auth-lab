@@ -1,47 +1,42 @@
 package server_side;
 
+import server_side.responses.CommandResponse;
+import server_side.responses.LoginResponse;
+
 import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface PrintService extends Remote {
 
-    enum LoginResult {
-        SUCCESS,
-        TOO_MANY_ATTEMPTS,
-        FAILURE
-    }
-
-    String echo(String input) throws RemoteException;
-
-    LoginResult login(String username, String password) throws RemoteException, IOException;
+    LoginResponse login(String username, String password) throws RemoteException, IOException;
 
     // prints file filename on the specified printer
-    void print(String filename, String printer) throws RemoteException;
+    CommandResponse<Void> print(String filename, String printer, String accessToken) throws RemoteException;
 
     // lists the print queue for a given printer on the user's display in lines of the form <job number>   <file name>
-    String queue(String printer) throws RemoteException;
+    CommandResponse<String> queue(String printer, String accessToken) throws RemoteException;
 
     // moves job to the top of the queue
-    void topQueue(String printer, int job) throws RemoteException;
+    CommandResponse<Void> topQueue(String printer, int job, String accessToken) throws RemoteException;
 
     // starts the print server
-    void start() throws RemoteException;
+    CommandResponse<Void> start(String accessToken) throws RemoteException;
 
     // stops the print server
-    void stop() throws RemoteException;
+    CommandResponse<Void> stop(String accessToken) throws RemoteException;
 
     // stops the print server, clears the print queue and starts the print server again
-    void restart() throws RemoteException;
+    CommandResponse<Void> restart(String accessToken) throws RemoteException;
 
     // prints status of printer on the user's display
-    String status(String printer) throws RemoteException;
+    CommandResponse<String> status(String printer, String accessToken) throws RemoteException;
 
     // prints the value of the parameter on the user's display
-    void readConfig(String parameter) throws RemoteException;
+    CommandResponse<String> readConfig(String parameter, String accessToken) throws RemoteException;
 
     // sets the parameter to value
-    void setConfig(String parameter, String value) throws RemoteException;
+    CommandResponse<String> setConfig(String parameter, String value, String accessToken) throws RemoteException;
 
 
 }

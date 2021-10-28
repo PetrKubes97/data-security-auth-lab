@@ -1,6 +1,7 @@
 package client_side;
 
 import server_side.PrintService;
+import server_side.responses.*;
 
 import java.io.IOException;
 import java.rmi.Naming;
@@ -12,81 +13,78 @@ public class Client {
 
     private static PrintService server;
     private static Scanner scanner;
+    private static String accessToken;
+    private static boolean quit = false;
 
     public static void main(String[] args) throws IOException, NotBoundException {
         server = (PrintService) Naming.lookup("rmi://127.0.0.1:5099/printer");
-        System.out.println("----- " + server.echo("asdf"));
-        loginPrompt();
-        commandPrompt();
-    }
 
-    public static void loginPrompt() throws IOException {
-        String username = "", password = "";
         scanner = new Scanner(System.in);
 
-        loginLoop: while (true) {
-            System.out.print("Enter username:");
-            username = scanner.nextLine();
-            System.out.print("Enter password:");
-            password = scanner.nextLine();
-
-            PrintService.LoginResult result = server.login(username, password);
-            switch (result) {
-                case SUCCESS -> {
-                    break loginLoop;
-                }
-                case TOO_MANY_ATTEMPTS -> {
-                    System.out.println("Too many attempts, try again in 5 minutes");
-                }
-                case FAILURE -> {
-                    System.out.println("Wrong username or password");
-                }
+        while (!quit) {
+            if (accessToken == null) {
+                accessToken = loginPrompt();
+            } else {
+                commandPrompt(accessToken);
             }
         }
     }
 
-    public static void commandPrompt() throws RemoteException {
-        String command = "";
-        do {
-            System.out.print("Enter command: ");
-            command = scanner.nextLine();
-            processCommand(command.toLowerCase());
-        } while (!command.equals("q"));// && command != "Q" && command != "quit");
+    public static String loginPrompt() throws IOException {
+        System.out.print("Enter username:");
+        final String username = scanner.nextLine();
+        System.out.print("Enter password:");
+        final String password = scanner.nextLine();
 
+        final LoginResponse result = server.login(username, password);
+        if (result instanceof LoginSuccess) {
+            return ((LoginSuccess) result).accessToken();
+        } else if (result instanceof LoginFailure) {
+            System.out.println(((LoginFailure) result).reason());
+        } else {
+            System.out.println("Unrecognized login response");
+        }
+        return null;
     }
 
-    public static void processCommand(String command) throws RemoteException {
+    public static void commandPrompt(String accessToken) throws RemoteException {
+        System.out.print("Enter command: ");
+        String command = scanner.nextLine();
+        processCommand(command.toLowerCase(), accessToken);
+    }
+
+    public static void processCommand(String command, String accessToken) throws RemoteException {
         switch (command) {
             case "print": {
                 final String filename = genericPrompt("Enter filename:");
                 final String printer = printerNamePrompt();
-                server.print(filename, printer);
+                checkServerResponse(() -> server.print(filename, printer, accessToken));
                 return;
             }
             case "queue": {
                 final String printer = printerNamePrompt();
-                queue(printer);
+                checkServerResponse(() -> server.queue(printer, accessToken));
                 return;
             }
             case "top queue":
             case "topqueue": {
                 final String printer = printerNamePrompt();
                 final String jobId = genericPrompt("Enter job id:");
-                server.topQueue(printer, Integer.parseInt(jobId));
+                checkServerResponse(() -> server.topQueue(printer, Integer.parseInt(jobId), accessToken));
                 return;
             }
             case "start":
-                server.start();
+                checkServerResponse(() -> server.start(accessToken));
                 return;
             case "stop":
-                server.stop();
+                checkServerResponse(() -> server.stop(accessToken));
                 return;
             case "restart":
-                server.restart();
+                checkServerResponse(() -> server.restart(accessToken));
                 return;
             case "status":
                 final String printer = printerNamePrompt();
-                System.out.println(server.status(printer));
+                checkServerResponse(() -> server.status(printer, accessToken));
                 return;
             case "read config":
             case "readconfig":
@@ -96,13 +94,25 @@ public class Client {
             case "setconfig":
                 //server.setConfig(scanner, config);
                 return;
+            case "q":
+                quit = true;
         }
 
         System.out.println("Command not found");
     }
 
-    private static void queue(String printer) throws RemoteException {
-        System.out.println(server.queue(printer));
+
+    public interface CommandResponseFunction<T> {
+        CommandResponse<T> call() throws RemoteException;
+    }
+
+    private static <T> void checkServerResponse(CommandResponseFunction<T> function) throws RemoteException {
+        final CommandResponse<T> response = function.call();
+        System.out.println(response);
+        if (response instanceof CommandFailure) {
+            System.out.println("here");
+            accessToken = null;
+        }
     }
 
     private static String genericPrompt(String text) {

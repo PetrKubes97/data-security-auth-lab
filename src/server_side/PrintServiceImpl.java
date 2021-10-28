@@ -1,28 +1,28 @@
 package server_side;
 
 import server_side.data.FileDatabase;
-import server_side.data.UserRecord;
+import server_side.responses.CommandFailure;
+import server_side.responses.CommandResponse;
+import server_side.responses.CommandSuccess;
+import server_side.responses.LoginResponse;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-
-import static server_side.crypto.Crypto.createPasswordHash;
 
 
 public class PrintServiceImpl extends UnicastRemoteObject implements PrintService {
 
     private ArrayList<Printer> printers;
     private boolean printersServerRunning = true;
-    private final FileDatabase database;
+    private final PrinterAuthenticator authenticator;
 
-    public PrintServiceImpl() throws RemoteException, FileNotFoundException {
+    public PrintServiceImpl() throws RemoteException {
         super();
         createPrinters();
-        database = new FileDatabase("users.txt");
+        FileDatabase database = new FileDatabase("users.txt");
+        authenticator = new PrinterAuthenticator(database);
     }
 
     private void createPrinters() {
@@ -39,85 +39,87 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     }
 
     @Override
-    public String echo(String input) throws RemoteException {
-        System.out.println("echo");
-        return "From server: " + input;
-    }
-
-    private Boolean limitUserGuesses(String username) throws IOException {
-        final UserRecord user = database.loadUserByUsername(username);
-        if (user == null) return false;
-
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        LocalDateTime minusFiveMin = currentDateTime.minusMinutes(5);
-
-        //Less than 3 tries and less than 5 minutes from last try
-        if (user.passwordGuesses() < 3 && user.lastLoginAttemptAt().isAfter(minusFiveMin)) {
-            database.updateLoginInfo(user, user.passwordGuesses() + 1, currentDateTime);
-            return true;
-        }
-        //More than 5 minutes from last try
-        else if (user.lastLoginAttemptAt().isBefore(minusFiveMin)) {
-            database.updateLoginInfo(user, 0, currentDateTime);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public LoginResult login(String username, String password) throws IOException {
-        final UserRecord user = database.loadUserByUsername(username);
-
-        if (limitUserGuesses(username)) {
-            final String saltedHashedPassword = createPasswordHash(user.salt(), password);
-            if (user.hashedPassword().equals(saltedHashedPassword)) {
-                return LoginResult.SUCCESS;
-            }
-        } else {
-            return LoginResult.TOO_MANY_ATTEMPTS;
-        }
-
-        return LoginResult.FAILURE;
+    public LoginResponse login(String username, String password) throws IOException {
+        return authenticator.login(username, password);
     }
 
     // prints file filename on the specified printer
     @Override
-    public void print(String filename, String printer) {
-        if (isSeverTurnedOff()) {
-            return;
-        }
-        int printerId = findPrinter(printer);
+    public CommandResponse<Void> print(String filename, String printer, String accessToken) {
+        return authenticator.authenticated(accessToken, () -> {
+            if (isSeverTurnedOff()) {
+                return new CommandFailure<>("Server is turned off");
+            }
+            int printerId = findPrinter(printer);
 
-        if (printerId != -1) {
-            printers.get(printerId).fileNames.add(filename);
-        }
+            if (printerId != -1) {
+                printers.get(printerId).fileNames.add(filename);
+            }
 
+            return new CommandSuccess<>(null);
+        });
     }
 
     // lists the print queue for a given printer on the user's display in lines of the form <job number>   <file name>
     @Override
-    public String queue(String printer) {
-        if (isSeverTurnedOff()) {
-            return "";
-        }
+    public CommandResponse<String> queue(String printer, String accessToken) {
+        return authenticator.authenticated(accessToken, () -> {
+            if (isSeverTurnedOff()) {
+                return new CommandFailure<>("Server is turned off");
+            }
 
-        int printerId = findPrinter(printer);
-        if (printerId != -1) {
-            return printers.get(printerId).listQueue();
-        }
-        return "";
+            int printerId = findPrinter(printer);
+            if (printerId != -1) {
+                return new CommandSuccess<>(printers.get(printerId).listQueue());
+            }
+            return new CommandFailure<>("Printer does not exist");
+        });
     }
 
     @Override
-    public void topQueue(String printer, int job) {
-        if (isSeverTurnedOff()) {
-            return;
-        }
-        int printerId = findPrinter(printer);
-        if (printerId != -1) {
-            printers.get(printerId).moveFirstInQueue(job);
-        }
+    public CommandResponse<Void> topQueue(String printer, int job, String accessToken) {
+        return authenticator.authenticated(accessToken, () -> {
+            if (isSeverTurnedOff()) {
+                return new CommandFailure<>("Server is turned off");
+            }
+
+            int printerId = findPrinter(printer);
+            if (printerId != -1) {
+                printers.get(printerId).moveFirstInQueue(job);
+            }
+
+            return new CommandSuccess<>(null);
+        });
+    }
+
+    @Override
+    public CommandResponse<Void> start(String accessToken) throws RemoteException {
+        return authenticator.authenticated(accessToken, () -> null);
+    }
+
+    @Override
+    public CommandResponse<Void> stop(String accessToken) throws RemoteException {
+        return authenticator.authenticated(accessToken, () -> null);
+    }
+
+    @Override
+    public CommandResponse<Void> restart(String accessToken) throws RemoteException {
+        return authenticator.authenticated(accessToken, () -> null);
+    }
+
+    @Override
+    public CommandResponse<String> status(String printer, String accessToken) throws RemoteException {
+        return authenticator.authenticated(accessToken, () -> null);
+    }
+
+    @Override
+    public CommandResponse<String> readConfig(String parameter, String accessToken) throws RemoteException {
+        return authenticator.authenticated(accessToken, () -> null);
+    }
+
+    @Override
+    public CommandResponse<String> setConfig(String parameter, String value, String accessToken) throws RemoteException {
+        return authenticator.authenticated(accessToken, () -> null);
     }
 
     private int findPrinter(String printer) {
@@ -129,25 +131,6 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         return -1;
     }
 
-    @Override
-    public void start() {
-        printersServerRunning = true;
-        System.out.println("Print server started");
-    }
-
-    @Override
-    public void stop() {
-        printersServerRunning = false;
-        System.out.println("Print server stopped");
-    }
-
-    @Override
-    public void restart() {
-        printersServerRunning = true;
-        for (Printer printer : printers) {
-            printer.restartPrinter();
-        }
-    }
 
     private boolean isSeverTurnedOff() {
         if (!printersServerRunning) {
@@ -155,33 +138,4 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         }
         return !printersServerRunning;
     }
-
-    // prints status of printer on the user's display
-    @Override
-    public String status(String printer) {
-        if (printersServerRunning) {
-            return "Print server: Online";
-        }
-        return "Print server: Offline";
-
-    }
-
-    // prints the value of the parameter on the user's display
-    @Override
-    public void readConfig(String parameter) {
-        if (isSeverTurnedOff()) {
-            return;
-        }
-
-    }
-
-    // sets the parameter to value
-    @Override
-    public void setConfig(String parameter, String value) {
-        if (isSeverTurnedOff()) {
-            return;
-        }
-
-    }
-
 }
