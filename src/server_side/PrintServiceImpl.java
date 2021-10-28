@@ -1,37 +1,28 @@
 package server_side;
 
-import org.bouncycastle.jcajce.provider.digest.SHA3;
-import org.bouncycastle.util.encoders.Hex;
+import server_side.data.FileDatabase;
 import server_side.data.UserRecord;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+
+import static server_side.crypto.Crypto.createPasswordHash;
 
 
 public class PrintServiceImpl extends UnicastRemoteObject implements PrintService {
 
     private ArrayList<Printer> printers;
-
     private boolean printersServerRunning = true;
+    private final FileDatabase database;
 
     public PrintServiceImpl() throws RemoteException, FileNotFoundException {
         super();
         createPrinters();
+        database = new FileDatabase("users.txt");
     }
 
     private void createPrinters() {
@@ -53,139 +44,40 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         return "From server: " + input;
     }
 
-    private String createHashPassword(String password) {
-        SHA3.DigestSHA3 digestSHA3 = new SHA3.Digest512();
-        byte[] digest = digestSHA3.digest(password.getBytes());
-        byte[] salt = new byte[50];
-        salt = getNextSalt();
-        //To do Save salt, pw and user in txt?
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    private Boolean limitUserGuesses(String username) throws IOException {
+        final UserRecord user = database.loadUserByUsername(username);
 
-        //To do Fix:
-        try {
-            outputStream.write(salt);
-            outputStream.write(digest);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        byte[] saltedPassword = outputStream.toByteArray();
-
-        return Hex.toHexString(saltedPassword);
-    }
-
-    private String getHashPassword(String salt, String password) {
-        SHA3.DigestSHA3 digestSHA3 = new SHA3.Digest512();
-        byte[] digest = digestSHA3.digest(password.getBytes());
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        //To do Fix:
-        try {
-            outputStream.write(salt.getBytes());
-            outputStream.write(digest);
-        } catch (IOException e) {
-
-            e.printStackTrace();
-        }
-
-        byte[] saltedPassword = outputStream.toByteArray();
-        return Hex.toHexString(saltedPassword);
-    }
-
-    public static byte[] getNextSalt() {
-        SecureRandom rand = new SecureRandom();
-        byte[] salt = new byte[50];
-        rand.nextBytes(salt);
-
-        return salt;
-    }
-
-    //Pw and usernames
-    //user,pass
-    //test,test
-    //user1,pass1
-
-    public Boolean limitUserGuesses(String username) throws IOException {
-        final List<UserRecord> users = loadUsersFromFile();
         LocalDateTime currentDateTime = LocalDateTime.now();
-        final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
-        //Todo Fix
-        for (UserRecord user : users) {
-            if (user.name().equals(username)) {
-                LocalDateTime userTimeStamp = LocalDateTime.parse(user.passwordGuessTimestamp(), formatter);
-                int userAttempts = Integer.parseInt(user.passwordGuesses());
-                LocalDateTime minusFiveMin = currentDateTime.minusMinutes(5);
-                //Less than 3 tries and less than 5 minutes from last try
-                if (userAttempts < 3 && userTimeStamp.isAfter(minusFiveMin)) {
-                    updateLoginData(user, userTimeStamp, userAttempts + 1, users);
-                    return true;
-                }
-                //More than 5 minutes from last try
-                else if (userTimeStamp.isBefore(minusFiveMin)) {
-                    updateLoginData(user, currentDateTime, 0, users);
-                    return true;
-                } else {
-                    System.out.println("Return False");
-                    return false;
-                }
-            }
+        LocalDateTime minusFiveMin = currentDateTime.minusMinutes(5);
+
+        //Less than 3 tries and less than 5 minutes from last try
+        if (user.passwordGuesses() < 3 && user.lastLoginAttemptAt().isAfter(minusFiveMin)) {
+            database.updateLoginInfo(user, user.passwordGuesses() + 1, currentDateTime);
+            return true;
         }
-        return false;
-    }
-
-    public void updateLoginData(UserRecord user, LocalDateTime timeStamp, int attempts, List<UserRecord> users) throws IOException {
-
-        String findString = user.name() + "," + user.passwordGuessTimestamp() + "," + user.passwordGuesses();
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
-
-        String formattedDateTime = currentDateTime.format(formatter);
-        System.out.println(formattedDateTime);
-        String replaceString = user.name() + "," + formattedDateTime + "," + attempts;
-        Path path = Paths.get("Login.txt");
-        Charset charset = StandardCharsets.UTF_8;
-
-        String content = Files.readString(path, charset);
-        content = content.replaceAll(findString, replaceString);
-        Files.writeString(path, content, charset);
+        //More than 5 minutes from last try
+        else if (user.lastLoginAttemptAt().isBefore(minusFiveMin)) {
+            database.updateLoginInfo(user, 0, currentDateTime);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
     public LoginResult login(String username, String password) throws IOException {
-        try {
-            final List<UserRecord> users = loadUsersFromFile();
-            String saltedPassword;
-            if (limitUserGuesses(username)) {
-                for (UserRecord user : users) {
-                    saltedPassword = getHashPassword(user.salt(), password);
-                    if (user.name().equals(username) && user.password().equals(saltedPassword)) {
-                        return LoginResult.SUCCESS;
-                    }
-                }
+        final UserRecord user = database.loadUserByUsername(username);
+
+        if (limitUserGuesses(username)) {
+            final String saltedHashedPassword = createPasswordHash(user.salt(), password);
+            if (user.hashedPassword().equals(saltedHashedPassword)) {
+                return LoginResult.SUCCESS;
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+        } else {
+            return LoginResult.TOO_MANY_ATTEMPTS;
         }
 
         return LoginResult.FAILURE;
-    }
-
-    private List<UserRecord> loadUsersFromFile() throws FileNotFoundException {
-        File file = new File("Login.txt");
-        Scanner scanner2 = new Scanner(file);
-        scanner2.useDelimiter("[,\n]");
-        ArrayList<UserRecord> users = new ArrayList<>();
-
-        while (scanner2.hasNext()) {
-            final String username = scanner2.next().trim();
-            final String initalizeLoginTime = scanner2.next().trim();
-            final String attempts = scanner2.next().trim();
-            final String password = scanner2.next().trim();
-            final String salt = scanner2.next().trim();
-            users.add(new UserRecord(username, initalizeLoginTime, attempts, password, salt));
-        }
-
-        return users;
     }
 
     // prints file filename on the specified printer
