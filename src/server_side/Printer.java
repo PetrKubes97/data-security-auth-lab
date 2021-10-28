@@ -31,11 +31,11 @@ public class Printer {
     }
 
     public String listQueue() {
-        String ret = "";
+        StringBuilder ret = new StringBuilder();
         for (int i = 0; i < fileNames.size(); i++) {
-            ret += Integer.toString(i) + " " + fileNames.get(i) + "\n";
+            ret.append(i).append(" ").append(fileNames.get(i)).append("\n");
         }
-        return ret;
+        return ret.toString();
     }
 
     public void restartPrinter() {

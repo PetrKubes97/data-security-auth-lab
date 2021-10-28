@@ -69,7 +69,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
             e.printStackTrace();
         }
 
-        byte saltedPassword[] = outputStream.toByteArray();
+        byte[] saltedPassword = outputStream.toByteArray();
 
         return Hex.toHexString(saltedPassword);
     }
@@ -88,13 +88,13 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
             e.printStackTrace();
         }
 
-        byte saltedPassword[] = outputStream.toByteArray();
+        byte[] saltedPassword = outputStream.toByteArray();
         return Hex.toHexString(saltedPassword);
     }
 
     public static byte[] getNextSalt() {
         SecureRandom rand = new SecureRandom();
-        byte salt[] = new byte[50];
+        byte[] salt = new byte[50];
         rand.nextBytes(salt);
 
         return salt;
@@ -113,7 +113,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         for (UserRecord user : users) {
             if (user.name().equals(username)) {
                 LocalDateTime userTimeStamp = LocalDateTime.parse(user.passwordGuessTimestamp(), formatter);
-                int userAttempts = Integer.valueOf(user.passwordGuesses());
+                int userAttempts = Integer.parseInt(user.passwordGuesses());
                 LocalDateTime minusFiveMin = currentDateTime.minusMinutes(5);
                 //Less than 3 tries and less than 5 minutes from last try
                 if (userAttempts < 3 && userTimeStamp.isAfter(minusFiveMin)) {
@@ -145,9 +145,9 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         Path path = Paths.get("Login.txt");
         Charset charset = StandardCharsets.UTF_8;
 
-        String content = new String(Files.readAllBytes(path), charset);
+        String content = Files.readString(path, charset);
         content = content.replaceAll(findString, replaceString);
-        Files.write(path, content.getBytes(charset));
+        Files.writeString(path, content, charset);
     }
 
     @Override
