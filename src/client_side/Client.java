@@ -1,7 +1,10 @@
 package client_side;
 
 import server_side.PrintService;
+
+import java.io.IOException;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Scanner;
 
@@ -10,22 +13,17 @@ public class Client {
     private static PrintService server;
     private static Scanner scanner;
 
-    public static void main(String[] args) {
-        try {
+    public static void main(String[] args) throws IOException, NotBoundException  {
             server = (PrintService) Naming.lookup("rmi://127.0.0.1:5099/printer");
             System.out.println("----- " + server.echo("asdf"));
             loginPrompt();
             commandPrompt();
-
-        } catch (Exception e) {
-            System.out.println(e.toString());
-        }
     }
 
-    public static void loginPrompt() throws RemoteException {
+    public static void loginPrompt() throws IOException {
         String username = "", password = "";
         scanner = new Scanner(System.in);
-
+        
         do {
             System.out.print("Enter username:");
             username = scanner.nextLine();

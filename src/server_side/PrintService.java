@@ -1,5 +1,6 @@
 package server_side;
 
+import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -13,7 +14,7 @@ public interface PrintService extends Remote {
 
     String echo(String input) throws RemoteException;
 
-    LoginResult login(String username, String password) throws RemoteException;
+    LoginResult login(String username, String password) throws RemoteException, IOException;
 
     // prints file filename on the specified printer
     void print(String filename, String printer) throws RemoteException;

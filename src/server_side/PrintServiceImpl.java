@@ -1,23 +1,26 @@
 package server_side;
 
 import server_side.data.*;
-
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.charset.Charset;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 import org.bouncycastle.jcajce.provider.digest.SHA3;
 import org.bouncycastle.util.encoders.Hex;
-//import org.junit.Test;
+
 
 public class PrintServiceImpl extends UnicastRemoteObject implements PrintService {
 
@@ -25,7 +28,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
 
     private boolean printersServerRunning = true;
 
-    public PrintServiceImpl() throws RemoteException {
+    public PrintServiceImpl() throws RemoteException, FileNotFoundException {
         super();
         createPrinters();
     }
@@ -101,16 +104,65 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     //test,test
     //user1,pass1
     
+    public Boolean limitUserGuesses(String username) throws IOException {
+    	final List<UserRecord> users = loadUsersFromFile();
+    	LocalDateTime currentDateTime = LocalDateTime.now();
+    	final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+    	//Todo Fix
+    	for (UserRecord user : users) {
+    		if(user.name().equals(username))
+    		{
+    			LocalDateTime userTimeStamp = LocalDateTime.parse(user.passwordGuessTimestamp(), formatter);
+    	    	int userAttempts = Integer.valueOf(user.passwordGuesses());
+    	    	LocalDateTime minusFiveMin = currentDateTime.minusMinutes(5);
+    	       	//Less than 3 tries and less than 5 minutes from last try
+    	    	if(userAttempts < 3 && userTimeStamp.isAfter(minusFiveMin)) {
+    	    		updateLoginData(user, userTimeStamp, userAttempts + 1, users);
+    	    		return true;
+    	    	}
+    	    	//More than 5 minutes from last try
+    	    	else if(userTimeStamp.isBefore(minusFiveMin)) {    	    		
+    	    		updateLoginData(user, currentDateTime, 0, users);
+    	    		return true;
+    	    	}
+    	    	else {
+    	    		System.out.println("Return False");
+    	    		return false;
+    	    	}	
+    		}
+    	}
+    	return false;
+    }
+    
+    public void updateLoginData(UserRecord user, LocalDateTime timeStamp, int attempts, List<UserRecord> users) throws IOException  {
+    	
+    	String findString = user.name() + "," + user.passwordGuessTimestamp() + "," + user.passwordGuesses();
+    	LocalDateTime currentDateTime = LocalDateTime.now();
+    	final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+    	
+    	String formattedDateTime = currentDateTime.format(formatter);
+    	System.out.println(formattedDateTime);
+    	String replaceString = user.name() + "," + formattedDateTime + "," + attempts;
+    	Path path = Paths.get("Login.txt");
+    	Charset charset = StandardCharsets.UTF_8;
+
+    	String content = new String(Files.readAllBytes(path), charset);
+    	content = content.replaceAll(findString, replaceString);
+    	Files.write(path, content.getBytes(charset));
+    }
+    
     @Override
-    public LoginResult login(String username, String password){
+    public LoginResult login(String username, String password) throws IOException{
         try {
             final List<UserRecord> users = loadUsersFromFile();
             String saltedPassword;
-            for (UserRecord user : users) {
-            	saltedPassword = getHashPassword(user.salt(), password);
-                if (user.name().equals(username) && user.password().equals(saltedPassword)) {
-                    return LoginResult.SUCCESS;
-                }
+            if (limitUserGuesses(username)) {
+	            for (UserRecord user : users) {
+	            	saltedPassword = getHashPassword(user.salt(), password);
+	                if (user.name().equals(username) && user.password().equals(saltedPassword)) {
+	                    return LoginResult.SUCCESS;
+	                }
+	            }
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -123,14 +175,15 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         File file = new File("Login.txt");
         Scanner scanner2 = new Scanner(file);
         scanner2.useDelimiter("[,\n]");
-
         ArrayList<UserRecord> users = new ArrayList<>();
-
+        
         while (scanner2.hasNext()) {
             final String username = scanner2.next().trim();
+            final String initalizeLoginTime = scanner2.next().trim();
+            final String attempts = scanner2.next().trim();
             final String password = scanner2.next().trim();
             final String salt = scanner2.next().trim();
-            users.add(new UserRecord(username, password, salt));
+            users.add(new UserRecord(username, initalizeLoginTime, attempts, password, salt));
         }
 
         return users;
