@@ -13,17 +13,17 @@ public class Client {
     private static PrintService server;
     private static Scanner scanner;
 
-    public static void main(String[] args) throws IOException, NotBoundException  {
-            server = (PrintService) Naming.lookup("rmi://127.0.0.1:5099/printer");
-            System.out.println("----- " + server.echo("asdf"));
-            loginPrompt();
-            commandPrompt();
+    public static void main(String[] args) throws IOException, NotBoundException {
+        server = (PrintService) Naming.lookup("rmi://127.0.0.1:5099/printer");
+        System.out.println("----- " + server.echo("asdf"));
+        loginPrompt();
+        commandPrompt();
     }
 
     public static void loginPrompt() throws IOException {
         String username = "", password = "";
         scanner = new Scanner(System.in);
-        
+
         do {
             System.out.print("Enter username:");
             username = scanner.nextLine();
@@ -88,8 +88,9 @@ public class Client {
 
         System.out.println("Command not found");
     }
+
     private static void queue(String printer) throws RemoteException {
-    	System.out.println(server.queue(printer));
+        System.out.println(server.queue(printer));
     }
 
     private static String genericPrompt(String text) {

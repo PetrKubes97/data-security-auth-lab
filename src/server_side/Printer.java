@@ -31,7 +31,7 @@ public class Printer {
     }
 
     public String listQueue() {
-    	String ret = "";
+        String ret = "";
         for (int i = 0; i < fileNames.size(); i++) {
             ret += Integer.toString(i) + " " + fileNames.get(i) + "\n";
         }
