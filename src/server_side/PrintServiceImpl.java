@@ -22,7 +22,8 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
         super();
         createPrinters();
         FileDatabase database = new FileDatabase("users.txt");
-        authenticator = new PrinterAuthenticator(database);
+        Logger logger = new Logger("log.txt");
+        authenticator = new PrinterAuthenticator(database, logger);
     }
 
     private void createPrinters() {
@@ -46,7 +47,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     // prints file filename on the specified printer
     @Override
     public CommandResponse<Void> print(String filename, String printer, String accessToken) {
-        return authenticator.authenticated(accessToken, () -> {
+        return authenticator.authenticated(accessToken,"print",  () -> {
             if (isSeverTurnedOff()) {
                 return new CommandFailure<>("Server is turned off");
             }
@@ -63,7 +64,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     // lists the print queue for a given printer on the user's display in lines of the form <job number>   <file name>
     @Override
     public CommandResponse<String> queue(String printer, String accessToken) {
-        return authenticator.authenticated(accessToken, () -> {
+        return authenticator.authenticated(accessToken, "queue", () -> {
             if (isSeverTurnedOff()) {
                 return new CommandFailure<>("Server is turned off");
             }
@@ -78,7 +79,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
 
     @Override
     public CommandResponse<Void> topQueue(String printer, int job, String accessToken) {
-        return authenticator.authenticated(accessToken, () -> {
+        return authenticator.authenticated(accessToken, "topQueue", () -> {
             if (isSeverTurnedOff()) {
                 return new CommandFailure<>("Server is turned off");
             }
@@ -94,32 +95,38 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
 
     @Override
     public CommandResponse<Void> start(String accessToken) throws RemoteException {
-        return authenticator.authenticated(accessToken, () -> null);
+        return authenticator.authenticated(accessToken, "start", () -> {
+            printersServerRunning = true;
+            return new CommandSuccess<>(null);
+        });
     }
 
     @Override
     public CommandResponse<Void> stop(String accessToken) throws RemoteException {
-        return authenticator.authenticated(accessToken, () -> null);
+        return authenticator.authenticated(accessToken, "stop", () -> {
+            printersServerRunning = false;
+            return new CommandSuccess<>(null);
+        });
     }
 
     @Override
     public CommandResponse<Void> restart(String accessToken) throws RemoteException {
-        return authenticator.authenticated(accessToken, () -> null);
+        return authenticator.authenticated(accessToken, "restart", () -> null);
     }
 
     @Override
     public CommandResponse<String> status(String printer, String accessToken) throws RemoteException {
-        return authenticator.authenticated(accessToken, () -> null);
+        return authenticator.authenticated(accessToken, "status", () -> null);
     }
 
     @Override
     public CommandResponse<String> readConfig(String parameter, String accessToken) throws RemoteException {
-        return authenticator.authenticated(accessToken, () -> null);
+        return authenticator.authenticated(accessToken, "readConfig", () -> null);
     }
 
     @Override
     public CommandResponse<String> setConfig(String parameter, String value, String accessToken) throws RemoteException {
-        return authenticator.authenticated(accessToken, () -> null);
+        return authenticator.authenticated(accessToken, "setConfig", () -> null);
     }
 
     private int findPrinter(String printer) {

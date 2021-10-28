@@ -13,9 +13,11 @@ import static server_side.crypto.Crypto.createPasswordHash;
 
 public class PrinterAuthenticator {
     private final FileDatabase database;
+    private final Logger logger;
 
-    public PrinterAuthenticator(FileDatabase database) {
+    public PrinterAuthenticator(FileDatabase database, Logger logger) {
         this.database = database;
+        this.logger = logger;
     }
 
     private Boolean limitUserGuesses(String username) throws IOException {
@@ -53,25 +55,32 @@ public class PrinterAuthenticator {
                         LocalDateTime.now(),
                         accessToken
                 );
-
+                logger.logToFile(username, "logged in successfully");
                 return new LoginSuccess(accessToken);
             }
         } else {
+            logger.logToFile(username, "failed to login due to excessive attempts");
             return new LoginFailure("Too many attempts, try again later");
         }
 
+        logger.logToFile(username, "failed to login due to incorrect credentials");
         return new LoginFailure("Username or password incorrect");
     }
 
-    public <T> CommandResponse<T> authenticated(String accessToken, CommandResponseFunction<T> function) {
+    public <T> CommandResponse<T> authenticated(String accessToken, String commandName, CommandResponseFunction<T> function) {
         try {
             UserRecord user = database.loadUserByAccessToken(accessToken);
             if (user != null) {
-                System.out.println("Authenticated user run a command");
+                if (user.lastLoginAttemptAt().isBefore(LocalDateTime.now().minusMinutes(15))) {
+                    logger.logToFile("unknown user", "failed to authenticate with old access token");
+                    return new CommandFailure<>("Access token expired");
+                }
+
+                logger.logToFile(user.name(), "executed command: " + commandName);
                 return function.call();
             } else {
-                System.out.println("Unsuccessfull attempt to run command");
-                return new CommandFailure<>("Access token expired");
+                logger.logToFile("unknown user", "failed to authenticate with invalid access token");
+                return new CommandFailure<>("Access token not valid");
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();

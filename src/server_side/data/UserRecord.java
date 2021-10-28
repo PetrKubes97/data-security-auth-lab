@@ -34,8 +34,10 @@ public record UserRecord(
         final Integer parsedAttempts = Integer.parseInt(attempts);
         final String password = line[3].trim();
         final String salt = line[4].trim();
-        final String accessToken = line[5].trim();
-
+        String accessToken = line[5].trim();
+        if (accessToken.equals("null")) {
+            accessToken = null;
+        }
 
         return new UserRecord(
                 username,

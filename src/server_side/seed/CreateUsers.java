@@ -20,7 +20,7 @@ public class CreateUsers {
                 0,
                 createPasswordHash( salt1, "pass"),
                 salt1,
-                ""
+                null
         );
         db.insertUser(user1);
 
@@ -31,7 +31,7 @@ public class CreateUsers {
                 0,
                 createPasswordHash( salt2, "test"),
                 salt2,
-                ""
+                null
         );
         db.insertUser(user2);
     }

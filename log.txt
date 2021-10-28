@@ -1,0 +1,4 @@
+2021-10-29T01:29:31.600803 : user : logged in successfully
+2021-10-29T01:29:35.657531 : user : executed command: print
+2021-10-29T01:29:39.386502 : user : executed command: start
+2021-10-29T01:29:41.270813 : user : executed command: stop

@@ -11,4 +11,8 @@ public class CommandFailure<T> implements CommandResponse<T>{
     public T getResponse() {
         return null;
     }
+
+    public String getError() {
+        return error;
+    }
 }

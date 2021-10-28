@@ -27,7 +27,7 @@ public class FileDatabase {
     public UserRecord loadUserByAccessToken(String accessToken) throws FileNotFoundException {
         final List<UserRecord> allUsers = loadAllUsers();
         for (UserRecord user : allUsers) {
-            if (user.accessToken().equals(accessToken)) {
+            if (user.accessToken() != null && user.accessToken().equals(accessToken)) {
                 return user;
             }
         }

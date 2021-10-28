@@ -96,6 +96,7 @@ public class Client {
                 return;
             case "q":
                 quit = true;
+                return;
         }
 
         System.out.println("Command not found");
@@ -108,10 +109,11 @@ public class Client {
 
     private static <T> void checkServerResponse(CommandResponseFunction<T> function) throws RemoteException {
         final CommandResponse<T> response = function.call();
-        System.out.println(response);
         if (response instanceof CommandFailure) {
-            System.out.println("here");
+            System.out.println("Server error: " + ((CommandFailure<T>) response).getError());
             accessToken = null;
+        } else if (response != null) {
+            System.out.println(response.getResponse());
         }
     }
 
