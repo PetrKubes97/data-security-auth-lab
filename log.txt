@@ -2,3 +2,15 @@
 2021-10-29T01:29:35.657531 : user : executed command: print
 2021-10-29T01:29:39.386502 : user : executed command: start
 2021-10-29T01:29:41.270813 : user : executed command: stop
+2021-10-29T18:47:34.714564 : asdf : failed to login due to excessive attempts
+2021-10-29T18:47:38.712691 : user : failed to login due to incorrect credentials
+2021-10-29T18:48:05.000427 : user : logged in successfully
+2021-10-29T18:48:08.094449 : user : executed command: start
+2021-10-29T18:48:10.952760 : user : executed command: stop
+2021-10-29T18:48:19.820701 : user : executed command: print
+2021-10-29T18:50:39.929712 : user : logged in successfully
+2021-10-29T18:50:43.514850 : user : executed command: print
+2021-10-29T18:50:56.980775 : user : logged in successfully
+2021-10-29T18:50:59.494478 : user : executed command: print
+2021-10-29T18:51:02.980110 : user : executed command: stop
+2021-10-29T18:51:06.811487 : user : executed command: print

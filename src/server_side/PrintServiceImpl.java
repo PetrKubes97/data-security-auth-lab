@@ -111,22 +111,22 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
 
     @Override
     public CommandResponse<Void> restart(String accessToken) throws RemoteException {
-        return authenticator.authenticated(accessToken, "restart", () -> null);
+        return authenticator.authenticated(accessToken, "restart", () ->  new CommandSuccess<>(null));
     }
 
     @Override
     public CommandResponse<String> status(String printer, String accessToken) throws RemoteException {
-        return authenticator.authenticated(accessToken, "status", () -> null);
+        return authenticator.authenticated(accessToken, "status", () ->  new CommandSuccess<>(null));
     }
 
     @Override
     public CommandResponse<String> readConfig(String parameter, String accessToken) throws RemoteException {
-        return authenticator.authenticated(accessToken, "readConfig", () -> null);
+        return authenticator.authenticated(accessToken, "readConfig", () -> new CommandSuccess<>(null));
     }
 
     @Override
     public CommandResponse<String> setConfig(String parameter, String value, String accessToken) throws RemoteException {
-        return authenticator.authenticated(accessToken, "setConfig", () -> null);
+        return authenticator.authenticated(accessToken, "setConfig", () -> new CommandSuccess<>(null));
     }
 
     private int findPrinter(String printer) {

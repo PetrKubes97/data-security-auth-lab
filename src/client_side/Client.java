@@ -111,7 +111,9 @@ public class Client {
         final CommandResponse<T> response = function.call();
         if (response instanceof CommandFailure) {
             System.out.println("Server error: " + ((CommandFailure<T>) response).getError());
-            accessToken = null;
+            if (((CommandFailure<T>) response).getLogout()) {
+                accessToken = null;
+            }
         } else if (response != null) {
             System.out.println(response.getResponse());
         }

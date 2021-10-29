@@ -73,18 +73,18 @@ public class PrinterAuthenticator {
             if (user != null) {
                 if (user.lastLoginAttemptAt().isBefore(LocalDateTime.now().minusMinutes(15))) {
                     logger.logToFile("unknown user", "failed to authenticate with old access token");
-                    return new CommandFailure<>("Access token expired");
+                    return new CommandFailure<>("Access token expired", true);
                 }
 
                 logger.logToFile(user.name(), "executed command: " + commandName);
                 return function.call();
             } else {
                 logger.logToFile("unknown user", "failed to authenticate with invalid access token");
-                return new CommandFailure<>("Access token not valid");
+                return new CommandFailure<>("Access token not valid", true);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            return new CommandFailure<>("Authentication problem");
+            return new CommandFailure<>("Authentication problem", true);
         }
     }
 }
