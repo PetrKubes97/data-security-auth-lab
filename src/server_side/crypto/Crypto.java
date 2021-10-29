@@ -1,10 +1,10 @@
 package server_side.crypto;
 
-import org.bouncycastle.jcajce.provider.digest.SHA3;
-import org.bouncycastle.util.encoders.Hex;
-
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
+import org.bouncycastle.util.encoders.Hex;
 
 public class Crypto {
 
@@ -19,9 +19,15 @@ public class Crypto {
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
 
     public static String createPasswordHash(String salt, String password) {
-        final String passwordWithSalt = password + salt;
-        SHA3.DigestSHA3 digestSHA3 = new SHA3.Digest512();
-        byte[] digest = digestSHA3.digest(passwordWithSalt.getBytes());
+    	final String passwordWithSalt = password + salt;
+    	byte[] digest = null;
+    	try {
+    		 MessageDigest messageDigest = MessageDigest.getInstance("SHA3-512");
+			 digest = messageDigest.digest(passwordWithSalt.getBytes());
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+    	
         return Hex.toHexString(digest);
     }
 
