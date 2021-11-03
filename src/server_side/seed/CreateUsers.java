@@ -1,16 +1,16 @@
 package server_side.seed;
 
-import server_side.data.FileDatabase;
-import server_side.data.UserRecord;
+import server_side.database.Database;
+import server_side.database.pojo.UserRecord;
 
-import java.io.IOException;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 
 import static server_side.crypto.Crypto.createPasswordHash;
 
 public class CreateUsers {
-    public static void main(String[] args) throws IOException {
-        final FileDatabase db = new FileDatabase("users.txt");
+    public static void main(String[] args) throws SQLException {
+        final Database db = new Database();
         db.deleteAll();
 
         final String salt1 = "thisisasalt";
@@ -18,7 +18,7 @@ public class CreateUsers {
                 "user",
                 LocalDateTime.now().minusDays(1),
                 0,
-                createPasswordHash( salt1, "pass"),
+                createPasswordHash(salt1, "pass"),
                 salt1,
                 null
         );
@@ -29,7 +29,7 @@ public class CreateUsers {
                 "test",
                 LocalDateTime.now().minusDays(1),
                 0,
-                createPasswordHash( salt2, "test"),
+                createPasswordHash(salt2, "test"),
                 salt2,
                 null
         );

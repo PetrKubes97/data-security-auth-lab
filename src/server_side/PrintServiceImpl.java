@@ -1,6 +1,6 @@
 package server_side;
 
-import server_side.data.FileDatabase;
+import server_side.database.auth.AuthDatabase;
 import server_side.responses.CommandFailure;
 import server_side.responses.CommandResponse;
 import server_side.responses.CommandSuccess;
@@ -21,7 +21,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     public PrintServiceImpl() throws RemoteException {
         super();
         createPrinters();
-        FileDatabase database = new FileDatabase("users.txt");
+        AuthDatabase database = new AuthDatabase("users.txt");
         Logger logger = new Logger("log.txt");
         authenticator = new PrinterAuthenticator(database, logger);
     }

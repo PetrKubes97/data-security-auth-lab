@@ -1,8 +1,8 @@
 package server_side;
 
 import server_side.crypto.Crypto;
-import server_side.data.FileDatabase;
-import server_side.data.UserRecord;
+import server_side.database.auth.AuthDatabase;
+import server_side.database.pojo.UserRecord;
 import server_side.responses.*;
 
 import java.io.FileNotFoundException;
@@ -12,10 +12,10 @@ import java.time.LocalDateTime;
 import static server_side.crypto.Crypto.createPasswordHash;
 
 public class PrinterAuthenticator {
-    private final FileDatabase database;
+    private final AuthDatabase database;
     private final Logger logger;
 
-    public PrinterAuthenticator(FileDatabase database, Logger logger) {
+    public PrinterAuthenticator(AuthDatabase database, Logger logger) {
         this.database = database;
         this.logger = logger;
     }
