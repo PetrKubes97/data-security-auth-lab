@@ -1,6 +1,7 @@
 package server_side.middlewares;
 
-import server_side.Logger;
+import server_side.logger.Logger;
+import server_side.logger.LoggerImpl;
 import server_side.crypto.Crypto;
 import server_side.database.Database;
 import server_side.database.pojo.UserRecord;
@@ -13,9 +14,6 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 
 import static server_side.crypto.Crypto.createPasswordHash;
-
-record AuthenticationResult<T>(CommandFailure<T> commandFailure, String userName) {
-}
 
 public class Authenticator {
     private final Database database;
@@ -73,7 +71,7 @@ public class Authenticator {
             logger.logToFile(username, "failed to login due to incorrect credentials");
             return new LoginFailure("Username or password incorrect");
         } catch (SQLException e) {
-            return new LoginFailure("SQL errr");
+            return new LoginFailure("SQL errr " + e);
         }
     }
 

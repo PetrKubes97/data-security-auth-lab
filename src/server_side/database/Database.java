@@ -74,7 +74,7 @@ public class Database {
         ResultSet rs = statement.executeQuery("SELECT * FROM USERS WHERE " + column + "='" + value + "';");
         UserRecord result = null;
 
-        if (rs.first()) {
+        if (rs.next()) {
             result = UserRecord.fromRS(rs);
         }
         rs.close();
@@ -135,18 +135,18 @@ public class Database {
 
     public void deleteAll() throws SQLException {
         Statement statement = connection.createStatement();
-        String sql = "DELETE from USERS;";
+        String sql = "DELETE FROM ACCESS_RIGHTS; DELETE FROM USERS;";
         statement.executeUpdate(sql);
     }
 
     public void updateUser(UserRecord updatedUserRecord) throws SQLException {
         Statement statement = connection.createStatement();
         String sql = "UPDATE USERS set " +
-                "LAST_LOGIN_AT='" + updatedUserRecord.lastLoginAtStr() + "'," +
-                "PASSWORD_GUESSES='" + updatedUserRecord.passwordGuesses() + "'," +
-                "HASHED_PASSWORD='" + updatedUserRecord.hashedPassword() + "'," +
+                "LAST_LOGIN_AT='" + updatedUserRecord.lastLoginAtStr() + "', " +
+                "PASSWORD_GUESSES='" + updatedUserRecord.passwordGuesses() + "', " +
+                "HASHED_PASSWORD='" + updatedUserRecord.hashedPassword() + "', " +
                 "SALT='" + updatedUserRecord.salt() + "'," +
-                "ACCESS_TOKEN='" + updatedUserRecord.accessToken() + "'," +
+                "ACCESS_TOKEN='" + updatedUserRecord.accessToken() + "' " +
                 "WHERE NAME='" + updatedUserRecord.name() + "';";
         statement.executeUpdate(sql);
     }

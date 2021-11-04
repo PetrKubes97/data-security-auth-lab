@@ -1,15 +1,13 @@
 package server_side.middlewares;
 
-import server_side.Logger;
+import server_side.logger.Logger;
+import server_side.logger.LoggerImpl;
 import server_side.database.Database;
 import server_side.database.pojo.AccessRight;
 import server_side.responses.CommandFailure;
 
 import java.sql.SQLException;
 import java.util.List;
-
-record AuthorizationResult<T>(CommandFailure<T> commandFailure) {
-}
 
 
 public class Authorizator {
@@ -28,7 +26,7 @@ public class Authorizator {
             if (!accessRights.contains(requiredAccessRight)) {
                 logger.logToFile(username, "Attempted to use forbidden action: " + requiredAccessRight);
                 return new AuthorizationResult<>(
-                        new CommandFailure<>("Action " + requiredAccessRight + "not permitted")
+                        new CommandFailure<>("Action " + requiredAccessRight + " is not permitted")
                 );
             }
 

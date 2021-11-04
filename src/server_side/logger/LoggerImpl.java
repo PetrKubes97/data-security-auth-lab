@@ -1,4 +1,4 @@
-package server_side;
+package server_side.logger;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -6,10 +6,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-public class Logger {
+public class LoggerImpl implements Logger {
     private final File file;
 
-    public Logger(String logFileName) {
+    public LoggerImpl(String logFileName) {
         file = new File(logFileName);
     }
 

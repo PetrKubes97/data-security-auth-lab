@@ -16,3 +16,7 @@
 2021-10-29T18:51:06.811487 : user : executed command: print
 2021-11-04T00:03:39.134047 : user : failed to login due to incorrect credentials
 2021-11-04T00:03:42.842931 : user : logged in successfully
+2021-11-04T15:15:25.127943 : david : failed to login due to excessive attempts
+2021-11-04T15:41:16.777931 : david : failed to login due to incorrect credentials
+2021-11-04T15:41:20.709831 : david : logged in successfully
+2021-11-04T15:41:32.140109 : david : Attempted to use forbidden action: RESTART
