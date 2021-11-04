@@ -54,7 +54,7 @@ public class Database {
         stmt.close();
     }
 
-    private void insertAccessRight(String username, AccessRight accessRight) throws SQLException {
+    public void insertAccessRight(String username, AccessRight accessRight) throws SQLException {
         Statement stmt = connection.createStatement();
         String sql = "INSERT INTO ACCESS_RIGHTS (SUBJECT, ACCESS_RIGHT) " +
                 "VALUES ('" + username + "', '" + accessRight.toString() + "');";
@@ -76,6 +76,22 @@ public class Database {
 
         if (rs.first()) {
             result = UserRecord.fromRS(rs);
+        }
+        rs.close();
+        statement.close();
+
+        return result;
+    }
+
+    public List<AccessRight> loadAccessRightsByUsername(String username) throws SQLException {
+        Statement statement = connection.createStatement();
+        ResultSet rs = statement.executeQuery("SELECT * FROM ACCESS_RIGHTS WHERE SUBJECT='" + username + "';");
+        ArrayList<AccessRight> result = new ArrayList<>();
+
+        if (rs.next()) {
+            result.add(
+                    AccessRight.valueOf(rs.getString("ACCESS_RIGHT"))
+            );
         }
         rs.close();
         statement.close();

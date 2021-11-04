@@ -6,10 +6,11 @@ import server_side.responses.LoginResponse;
 import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.sql.SQLException;
 
 public interface PrintService extends Remote {
 
-    LoginResponse login(String username, String password) throws RemoteException, IOException;
+    LoginResponse login(String username, String password) throws RemoteException;
 
     // prints file filename on the specified printer
     CommandResponse<Void> print(String filename, String printer, String accessToken) throws RemoteException;

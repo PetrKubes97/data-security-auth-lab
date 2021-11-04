@@ -51,4 +51,11 @@ public class Crypto {
         secureRandom.nextBytes(randomBytes);
         return base64Encoder.encodeToString(randomBytes);
     }
+
+    public static String getNextSalt() {
+        byte[] salt = new byte[16];
+        secureRandom.nextBytes(salt);
+        return Base64.getEncoder().encodeToString(salt);
+
+    }
 }
