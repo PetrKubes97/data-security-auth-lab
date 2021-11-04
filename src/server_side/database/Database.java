@@ -2,6 +2,7 @@ package server_side.database;
 
 import org.sqlite.SQLiteConfig;
 import server_side.database.pojo.AccessRight;
+import server_side.database.pojo.Role;
 import server_side.database.pojo.UserRecord;
 
 import java.sql.*;
@@ -52,6 +53,18 @@ public class Database {
         stmt.executeUpdate(createSubjectSql);
         stmt.executeUpdate(createAccessRightsSql);
         stmt.close();
+    }
+
+    public void insertRole(Role role) {
+
+    }
+
+    public List<Role> getAllRoles(Role role) {
+        return new ArrayList<>();
+    }
+
+    public void assignRole(String userName, String roleName) {
+
     }
 
     public void insertAccessRight(String username, AccessRight accessRight) throws SQLException {
