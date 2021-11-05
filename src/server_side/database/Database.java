@@ -8,7 +8,9 @@ import server_side.database.pojo.UserRecord;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Database {
 
@@ -50,17 +52,110 @@ public class Database {
                 "ACCESS_RIGHT CHAR(50) NOT NULL," +
                 "FOREIGN KEY(SUBJECT) REFERENCES USERS(NAME)" +
                 ")";
+
+        // ROLES
+        String createRolesSql = "CREATE TABLE IF NOT EXISTS ROLES " +
+                "(NAME CHAR(50) NOT NULL);";
+        String createSubRolesSql = "CREATE TABLE IF NOT EXISTS SUB_ROLES " +
+                "(TOP_ROLE CHAR(50) NOT NULL," +
+                "BOTTOM_ROLE CHAR(50) NOT NULL," +
+                "FOREIGN KEY(TOP_ROLE) REFERENCES ROLES(NAME), " +
+                "FOREIGN KEY(BOTTOM_ROLE) REFERENCES ROLES(NAME)" +
+                ");";
+        String roleAccessRightsSql = "CREATE TABLE IF NOT EXISTS ROLE_ACCESS_RIGHTS " +
+                "(ROLE CHAR(50) NOT NULL, " +
+                "ACCESS_RIGHT CHAR(50) NOT NULL," +
+                "FOREIGN KEY(ROLE) REFERENCES ROLES(NAME)" +
+                ");";
+        String userRolesSql = "CREATE TABLE IF NOT EXISTS USER_ROLE " +
+                "(USER CHAR(50) NOT NULL, " +
+                "ROLE CHAR(50) NOT NULL, " +
+                "FOREIGN KEY(USER) REFERENCES USERS(NAME), " +
+                "FOREIGN KEY(ROLE) REFERENCES ROLES(NAME)" +
+                ");";
+
+
+
         stmt.executeUpdate(createSubjectSql);
         stmt.executeUpdate(createAccessRightsSql);
+        // ROLES
+        stmt.executeUpdate(createRolesSql);
+        stmt.executeUpdate(createSubRolesSql);
+        stmt.executeUpdate(roleAccessRightsSql);
+        stmt.executeUpdate(userRolesSql);
         stmt.close();
     }
 
-    public void insertRole(Role role) {
+    public void insertRole(Role role) throws SQLException {
+        Statement stmt = connection.createStatement();
+        StringBuilder sb = new StringBuilder();
+        String sql = "INSERT INTO ROLES (NAME) " +
+                "VALUES ('" + role.name + "');";
 
+        sb.append(sql);
+
+        for (AccessRight accessRight : role.getAllAccessRights()) {
+            String roleAccessSql = "INSERT INTO ROLE_ACCESS_RIGHTS (ROLE, ACCESS_RIGHT) " +
+                    "VALUES ('" + accessRight.toString() + "');";
+            sb.append(roleAccessSql);
+        }
+
+        for (Role subRole : role.subRoles) {
+            String subRoleSql = "INSERT INTO SUB_ROLES (TOP_ROLE, BOTTOM_ROLE) VALUES " +
+                    "('" + role.name+ "', '" + subRole.name + "')";
+            sb.append(subRoleSql);
+        }
+
+        stmt.executeUpdate(sb.toString());
+        stmt.close();
     }
 
-    public List<Role> getAllRoles(Role role) {
-        return new ArrayList<>();
+    public Role getRoleByName(String name) throws SQLException {
+        Statement statement = connection.createStatement();
+        // Just check if role exists
+        ResultSet rs = statement.executeQuery("SELECT * FROM ROLES WHERE NAME='" + name + "';");
+        if (!rs.next()) return null;
+        rs.close();
+        statement.close();
+
+        List<String> subRoleNames = getNamesOfSubRoles(name);
+        Set<Role> subRoles = new HashSet<>();
+        for (String subRoleName : subRoleNames) {
+            subRoles.add(getRoleByName(subRoleName));
+        }
+
+        Set<AccessRight> accessRights = getRoleSpecificAccessRights(name);
+
+        return new Role(name, subRoles, accessRights);
+    }
+
+    private List<String> getNamesOfSubRoles(String roleName) throws SQLException {
+        Statement statement = connection.createStatement();
+        ResultSet rs = statement.executeQuery("SELECT * FROM SUB_ROLES WHERE TOP_ROLE='" + roleName + "';");
+        ArrayList<String> result = new ArrayList<>();
+
+        if (rs.next()) {
+            result.add(rs.getString("BOTTOM_ROLE"));
+        }
+        rs.close();
+        statement.close();
+        return result;
+    }
+
+    private Set<AccessRight> getRoleSpecificAccessRights(String roleName) throws SQLException {
+        Statement statement = connection.createStatement();
+        ResultSet rs = statement.executeQuery("SELECT * FROM ROLE_ACCESS_RIGHTS WHERE ROLE='" + roleName + "';");
+        Set<AccessRight> result = new HashSet<>();
+
+        if (rs.next()) {
+            result.add(
+                    AccessRight.valueOf(rs.getString("ACCESS_RIGHT"))
+            );
+        }
+        rs.close();
+        statement.close();
+
+        return result;
     }
 
     public void assignRole(String userName, String roleName) {

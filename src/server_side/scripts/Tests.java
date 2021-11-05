@@ -18,7 +18,7 @@ public class Tests {
         final Authorizator authorizator = new Authorizator(db, logger);
         final Authenticator authenticator = new Authenticator(db, logger);
 
-        CreateUsers.resetWithSeedData(db);
+        SeedData.resetWithSeedData(db);
 
         LoginResponse loginResponse =
                 authenticator.login("david", "pass");

@@ -10,15 +10,9 @@ import java.time.LocalDateTime;
 import static server_side.crypto.Crypto.createPasswordHash;
 import static server_side.crypto.Crypto.getNextSalt;
 
-public class CreateUsers {
+public class AclSeed {
 
-    public static void main(String[] args) throws SQLException {
-        final Database db = new Database();
-        resetWithSeedData(db);
-    }
-
-    public static void resetWithSeedData(Database db) throws SQLException {
-        db.deleteAll();
+    public static void createAclSeed(Database db) throws SQLException {
 
         createUserWithAccessRights(
                 "alice",
