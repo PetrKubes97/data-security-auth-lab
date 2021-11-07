@@ -55,7 +55,7 @@ public class Database {
 
         // ROLES
         String createRolesSql = "CREATE TABLE IF NOT EXISTS ROLES " +
-                "(NAME CHAR(50) NOT NULL);";
+                "(NAME CHAR(50) PRIMARY KEY NOT NULL);";
         String createSubRolesSql = "CREATE TABLE IF NOT EXISTS SUB_ROLES " +
                 "(TOP_ROLE CHAR(50) NOT NULL," +
                 "BOTTOM_ROLE CHAR(50) NOT NULL," +
@@ -75,7 +75,6 @@ public class Database {
                 ");";
 
 
-
         stmt.executeUpdate(createSubjectSql);
         stmt.executeUpdate(createAccessRightsSql);
         // ROLES
@@ -88,24 +87,30 @@ public class Database {
 
     public void insertRole(Role role) throws SQLException {
         Statement stmt = connection.createStatement();
-        StringBuilder sb = new StringBuilder();
         String sql = "INSERT INTO ROLES (NAME) " +
                 "VALUES ('" + role.name + "');";
+        System.out.println(sql);
+        // Needs to be executed to keep foreign key happy
+        stmt.executeUpdate(sql);
 
-        sb.append(sql);
+        StringBuilder sb = new StringBuilder();
 
         for (AccessRight accessRight : role.getAllAccessRights()) {
             String roleAccessSql = "INSERT INTO ROLE_ACCESS_RIGHTS (ROLE, ACCESS_RIGHT) " +
-                    "VALUES ('" + accessRight.toString() + "');";
+                    "VALUES (" +
+                    "'" + role.name + "'," +
+                    "'" + accessRight.toString() + "'" +
+                    ");";
             sb.append(roleAccessSql);
         }
 
         for (Role subRole : role.subRoles) {
             String subRoleSql = "INSERT INTO SUB_ROLES (TOP_ROLE, BOTTOM_ROLE) VALUES " +
-                    "('" + role.name+ "', '" + subRole.name + "')";
+                    "('" + role.name + "', '" + subRole.name + "');";
             sb.append(subRoleSql);
         }
 
+        System.out.println(sb);
         stmt.executeUpdate(sb.toString());
         stmt.close();
     }
@@ -158,8 +163,11 @@ public class Database {
         return result;
     }
 
-    public void assignRole(String userName, String roleName) {
-
+    public void assignRole(String userName, Role role) throws SQLException {
+        Statement stmt = connection.createStatement();
+        String sql = "INSERT INTO USER_ROLE (USER, ROLE) " +
+                "VALUES ('" + userName + "', '" + role.name + "');";
+        stmt.executeUpdate(sql);
     }
 
     public void insertAccessRight(String username, AccessRight accessRight) throws SQLException {
@@ -243,7 +251,12 @@ public class Database {
 
     public void deleteAll() throws SQLException {
         Statement statement = connection.createStatement();
-        String sql = "DELETE FROM ACCESS_RIGHTS; DELETE FROM USERS;";
+        String sql = "DELETE FROM ACCESS_RIGHTS;" +
+                "DELETE FROM USERS;" +
+                "DELETE FROM ROLE_ACCESS_RIGHTS;" +
+                "DELETE FROM SUB_ROLES;" +
+                "DELETE FROM USER_ROLE;" +
+                "DELETE FROM ROLES;";
         statement.executeUpdate(sql);
     }
 

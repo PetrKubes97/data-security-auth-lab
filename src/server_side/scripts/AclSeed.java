@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 
 import static server_side.crypto.Crypto.createPasswordHash;
 import static server_side.crypto.Crypto.getNextSalt;
+import static server_side.scripts.SeedHelper.createUserWithAccessRights;
 
 public class AclSeed {
 
@@ -68,26 +69,5 @@ public class AclSeed {
         );
     }
 
-    private static void createUserWithAccessRights(
-            String username,
-            String password,
-            AccessRight[] accessRights,
-            Database db
-    ) throws SQLException {
-        final String salt = getNextSalt();
-        final UserRecord user = new UserRecord(
-                username,
-                LocalDateTime.now().minusDays(1),
-                0,
-                createPasswordHash(salt, password),
-                salt,
-                null
-        );
 
-        db.insertUser(user);
-
-        for (AccessRight accessRight : accessRights) {
-            db.insertAccessRight(username, accessRight);
-        }
-    }
 }
