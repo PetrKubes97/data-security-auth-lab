@@ -1,7 +1,6 @@
-package server_side.middlewares;
+package server_side.middlewares.authentication;
 
 import server_side.logger.Logger;
-import server_side.logger.LoggerImpl;
 import server_side.crypto.Crypto;
 import server_side.database.Database;
 import server_side.database.pojo.UserRecord;

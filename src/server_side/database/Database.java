@@ -89,13 +89,12 @@ public class Database {
         Statement stmt = connection.createStatement();
         String sql = "INSERT INTO ROLES (NAME) " +
                 "VALUES ('" + role.name + "');";
-        System.out.println(sql);
         // Needs to be executed to keep foreign key happy
         stmt.executeUpdate(sql);
 
         StringBuilder sb = new StringBuilder();
 
-        for (AccessRight accessRight : role.getAllAccessRights()) {
+        for (AccessRight accessRight : role.extraAccessRights) {
             String roleAccessSql = "INSERT INTO ROLE_ACCESS_RIGHTS (ROLE, ACCESS_RIGHT) " +
                     "VALUES (" +
                     "'" + role.name + "'," +
@@ -110,12 +109,11 @@ public class Database {
             sb.append(subRoleSql);
         }
 
-        System.out.println(sb);
         stmt.executeUpdate(sb.toString());
         stmt.close();
     }
 
-    public Role getRoleByName(String name) throws SQLException {
+    private Role getRoleByName(String name) throws SQLException {
         Statement statement = connection.createStatement();
         // Just check if role exists
         ResultSet rs = statement.executeQuery("SELECT * FROM ROLES WHERE NAME='" + name + "';");
@@ -139,7 +137,7 @@ public class Database {
         ResultSet rs = statement.executeQuery("SELECT * FROM SUB_ROLES WHERE TOP_ROLE='" + roleName + "';");
         ArrayList<String> result = new ArrayList<>();
 
-        if (rs.next()) {
+        while (rs.next()) {
             result.add(rs.getString("BOTTOM_ROLE"));
         }
         rs.close();
@@ -152,7 +150,7 @@ public class Database {
         ResultSet rs = statement.executeQuery("SELECT * FROM ROLE_ACCESS_RIGHTS WHERE ROLE='" + roleName + "';");
         Set<AccessRight> result = new HashSet<>();
 
-        if (rs.next()) {
+        while (rs.next()) {
             result.add(
                     AccessRight.valueOf(rs.getString("ACCESS_RIGHT"))
             );
@@ -168,6 +166,24 @@ public class Database {
         String sql = "INSERT INTO USER_ROLE (USER, ROLE) " +
                 "VALUES ('" + userName + "', '" + role.name + "');";
         stmt.executeUpdate(sql);
+    }
+
+    public Role getRoleByUsername(String username) throws SQLException {
+        Statement statement = connection.createStatement();
+        ResultSet rs = statement.executeQuery("SELECT * FROM USER_ROLE WHERE USER='" + username + "';");
+        String roleName = null;
+
+        if (rs.next()) {
+            roleName = rs.getString("ROLE");
+        }
+        rs.close();
+        statement.close();
+
+        if (roleName == null) {
+            throw new IllegalStateException("Role not found");
+        }
+
+        return getRoleByName(roleName);
     }
 
     public void insertAccessRight(String username, AccessRight accessRight) throws SQLException {
@@ -252,11 +268,11 @@ public class Database {
     public void deleteAll() throws SQLException {
         Statement statement = connection.createStatement();
         String sql = "DELETE FROM ACCESS_RIGHTS;" +
-                "DELETE FROM USERS;" +
                 "DELETE FROM ROLE_ACCESS_RIGHTS;" +
                 "DELETE FROM SUB_ROLES;" +
                 "DELETE FROM USER_ROLE;" +
-                "DELETE FROM ROLES;";
+                "DELETE FROM ROLES;" +
+                "DELETE FROM USERS;";
         statement.executeUpdate(sql);
     }
 
@@ -292,3 +308,5 @@ public class Database {
 
 
 }
+
+

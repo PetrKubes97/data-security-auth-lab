@@ -1,6 +1,7 @@
 package server_side;
 
 import server_side.database.pojo.AccessRight;
+import server_side.middlewares.authorization.AuthorizationType;
 import server_side.middlewares.RequestMiddleware;
 import server_side.responses.CommandFailure;
 import server_side.responses.CommandResponse;
@@ -9,7 +10,6 @@ import server_side.responses.LoginResponse;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 
@@ -22,7 +22,7 @@ public class PrintServiceImpl extends UnicastRemoteObject implements PrintServic
     public PrintServiceImpl() throws RemoteException {
         super();
         createPrinters();
-        middleware = new RequestMiddleware();
+        middleware = new RequestMiddleware(AuthorizationType.ROLE);
     }
 
     private void createPrinters() {

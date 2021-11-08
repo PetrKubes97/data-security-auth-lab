@@ -20,3 +20,14 @@
 2021-11-04T15:41:16.777931 : david : failed to login due to incorrect credentials
 2021-11-04T15:41:20.709831 : david : logged in successfully
 2021-11-04T15:41:32.140109 : david : Attempted to use forbidden action: RESTART
+2021-11-08T01:04:25.929422 : david : logged in successfully
+2021-11-08T01:04:30.238381 : david : Attempted to use forbidden action: RESTART
+2021-11-08T01:05:22.904734 : david : logged in successfully
+2021-11-08T01:05:25.580229 : david : Attempted to use forbidden action: RESTART
+2021-11-08T01:05:38.183373 : david : Attempted to use forbidden action: STATUS
+2021-11-08T01:06:28.988430 : bob : logged in successfully
+2021-11-08T01:06:37.985646 : bob : Attempted to use forbidden action: RESTART
+2021-11-08T01:07:02.100659 : bob : Attempted to use forbidden action: PRINT
+2021-11-08T01:20:52.467860 : bob : logged in successfully
+2021-11-08T01:20:56.959364 : bob : Attempted to use forbidden action: PRINT
+2021-11-08T01:21:41.984806 : alice : logged in successfully

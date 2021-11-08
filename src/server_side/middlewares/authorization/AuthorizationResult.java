@@ -1,4 +1,4 @@
-package server_side.middlewares;
+package server_side.middlewares.authorization;
 
 import server_side.responses.CommandFailure;
 

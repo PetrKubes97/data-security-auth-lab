@@ -7,7 +7,7 @@ public class Role {
 
     public final String name;
     public final Set<Role> subRoles;
-    final Set<AccessRight> extraAccessRights;
+    public final Set<AccessRight> extraAccessRights;
 
     public Role(String name, Set<Role> subRoles, Set<AccessRight> extraAccessRights) {
         this.name = name;
