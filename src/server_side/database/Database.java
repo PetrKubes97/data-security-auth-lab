@@ -3,6 +3,7 @@ package server_side.database;
 import org.sqlite.SQLiteConfig;
 import server_side.database.pojo.AccessRight;
 import server_side.database.pojo.Role;
+import server_side.database.pojo.RoleName;
 import server_side.database.pojo.UserRecord;
 
 import java.sql.*;
@@ -50,7 +51,7 @@ public class Database {
         String createAccessRightsSql = "CREATE TABLE IF NOT EXISTS ACCESS_RIGHTS " +
                 "(SUBJECT CHAR(50) NOT NULL," +
                 "ACCESS_RIGHT CHAR(50) NOT NULL," +
-                "FOREIGN KEY(SUBJECT) REFERENCES USERS(NAME)" +
+                "FOREIGN KEY(SUBJECT) REFERENCES USERS(NAME) ON DELETE CASCADE" +
                 ")";
 
         // ROLES
@@ -70,7 +71,7 @@ public class Database {
         String userRolesSql = "CREATE TABLE IF NOT EXISTS USER_ROLE " +
                 "(USER CHAR(50) NOT NULL, " +
                 "ROLE CHAR(50) NOT NULL, " +
-                "FOREIGN KEY(USER) REFERENCES USERS(NAME), " +
+                "FOREIGN KEY(USER) REFERENCES USERS(NAME) ON DELETE CASCADE, " +
                 "FOREIGN KEY(ROLE) REFERENCES ROLES(NAME)" +
                 ");";
 
@@ -113,7 +114,14 @@ public class Database {
         stmt.close();
     }
 
-    private Role getRoleByName(String name) throws SQLException {
+    public void deleteUser(String username) throws SQLException {
+        Statement stmt = connection.createStatement();
+        String sql = "DELETE FROM USERS WHERE NAME='" + username + "';";
+        stmt.executeUpdate(sql);
+        stmt.close();
+    }
+
+    public Role getRoleByName(RoleName name) throws SQLException {
         Statement statement = connection.createStatement();
         // Just check if role exists
         ResultSet rs = statement.executeQuery("SELECT * FROM ROLES WHERE NAME='" + name + "';");
@@ -121,9 +129,9 @@ public class Database {
         rs.close();
         statement.close();
 
-        List<String> subRoleNames = getNamesOfSubRoles(name);
+        List<RoleName> subRoleNames = getNamesOfSubRoles(name);
         Set<Role> subRoles = new HashSet<>();
-        for (String subRoleName : subRoleNames) {
+        for (RoleName subRoleName : subRoleNames) {
             subRoles.add(getRoleByName(subRoleName));
         }
 
@@ -132,20 +140,20 @@ public class Database {
         return new Role(name, subRoles, accessRights);
     }
 
-    private List<String> getNamesOfSubRoles(String roleName) throws SQLException {
+    private List<RoleName> getNamesOfSubRoles(RoleName roleName) throws SQLException {
         Statement statement = connection.createStatement();
         ResultSet rs = statement.executeQuery("SELECT * FROM SUB_ROLES WHERE TOP_ROLE='" + roleName + "';");
-        ArrayList<String> result = new ArrayList<>();
+        ArrayList<RoleName> result = new ArrayList<>();
 
         while (rs.next()) {
-            result.add(rs.getString("BOTTOM_ROLE"));
+            result.add(RoleName.valueOf(rs.getString("BOTTOM_ROLE")));
         }
         rs.close();
         statement.close();
         return result;
     }
 
-    private Set<AccessRight> getRoleSpecificAccessRights(String roleName) throws SQLException {
+    private Set<AccessRight> getRoleSpecificAccessRights(RoleName roleName) throws SQLException {
         Statement statement = connection.createStatement();
         ResultSet rs = statement.executeQuery("SELECT * FROM ROLE_ACCESS_RIGHTS WHERE ROLE='" + roleName + "';");
         Set<AccessRight> result = new HashSet<>();
@@ -161,20 +169,21 @@ public class Database {
         return result;
     }
 
-    public void assignRole(String userName, Role role) throws SQLException {
+    public void assignRole(String userName, RoleName role) throws SQLException {
         Statement stmt = connection.createStatement();
-        String sql = "INSERT INTO USER_ROLE (USER, ROLE) " +
-                "VALUES ('" + userName + "', '" + role.name + "');";
+        String sql = "DELETE FROM USER_ROLE WHERE USER='"+ userName +"';" +
+                "INSERT INTO USER_ROLE (USER, ROLE) " +
+                "VALUES ('" + userName + "', '" + role + "');";
         stmt.executeUpdate(sql);
     }
 
     public Role getRoleByUsername(String username) throws SQLException {
         Statement statement = connection.createStatement();
         ResultSet rs = statement.executeQuery("SELECT * FROM USER_ROLE WHERE USER='" + username + "';");
-        String roleName = null;
+        RoleName roleName = null;
 
         if (rs.next()) {
-            roleName = rs.getString("ROLE");
+            roleName = RoleName.valueOf(rs.getString("ROLE"));
         }
         rs.close();
         statement.close();
@@ -191,6 +200,12 @@ public class Database {
         String sql = "INSERT INTO ACCESS_RIGHTS (SUBJECT, ACCESS_RIGHT) " +
                 "VALUES ('" + username + "', '" + accessRight.toString() + "');";
         stmt.executeUpdate(sql);
+    }
+
+    public void removeAccessRightsForUser(String username) throws SQLException {
+        final Statement statement = connection.createStatement();
+        String sql = "DELETE FROM ACCESS_RIGHTS WHERE SUBJECT='" + username + "';";
+        statement.executeUpdate(sql);
     }
 
     public UserRecord loadUserByUsername(String username) throws SQLException {
@@ -220,7 +235,7 @@ public class Database {
         ResultSet rs = statement.executeQuery("SELECT * FROM ACCESS_RIGHTS WHERE SUBJECT='" + username + "';");
         ArrayList<AccessRight> result = new ArrayList<>();
 
-        if (rs.next()) {
+        while (rs.next()) {
             result.add(
                     AccessRight.valueOf(rs.getString("ACCESS_RIGHT"))
             );

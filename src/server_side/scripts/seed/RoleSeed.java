@@ -1,8 +1,9 @@
-package server_side.scripts;
+package server_side.scripts.seed;
 
 import server_side.database.Database;
 import server_side.database.pojo.AccessRight;
 import server_side.database.pojo.Role;
+import server_side.database.pojo.RoleName;
 
 import java.sql.SQLException;
 import java.util.EnumSet;
@@ -13,7 +14,7 @@ public class RoleSeed {
 
     public static void createRoleSeed(Database db) throws SQLException {
         final Role technician = new Role(
-                "technician",
+                RoleName.TECHNICIAN,
                 new HashSet<>(),
                 EnumSet.of(
                         AccessRight.START,
@@ -26,7 +27,7 @@ public class RoleSeed {
         );
 
         final Role basicUser = new Role(
-                "user",
+                RoleName.USER,
                 new HashSet<>(),
                 EnumSet.of(
                         AccessRight.PRINT,
@@ -35,7 +36,7 @@ public class RoleSeed {
         );
 
         final Role powerUser = new Role(
-                "power_user",
+                RoleName.POWER_USER,
                 Set.of(basicUser),
                 EnumSet.of(
                         AccessRight.TOP_QUEUE
@@ -43,7 +44,7 @@ public class RoleSeed {
         );
 
         final Role admin = new Role(
-                "admin",
+                RoleName.ADMIN,
                 Set.of(powerUser, technician),
                 Set.of()
         );
@@ -58,7 +59,7 @@ public class RoleSeed {
         SeedHelper.createUserWithRole(
                 "alice",
                 "pass",
-                admin,
+                admin.name,
                 db
         );
 
@@ -66,7 +67,7 @@ public class RoleSeed {
         SeedHelper.createUserWithRole(
                 "bob",
                 "pass",
-                technician,
+                technician.name,
                 db
         );
 
@@ -74,7 +75,7 @@ public class RoleSeed {
         SeedHelper.createUserWithRole(
                 "cecilia",
                 "pass",
-                powerUser,
+                powerUser.name,
                 db
         );
 
@@ -84,7 +85,7 @@ public class RoleSeed {
             SeedHelper.createUserWithRole(
                     user,
                     "pass",
-                    basicUser,
+                    basicUser.name,
                     db
             );
         }

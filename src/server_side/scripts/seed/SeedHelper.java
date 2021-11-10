@@ -1,8 +1,9 @@
-package server_side.scripts;
+package server_side.scripts.seed;
 
 import server_side.database.Database;
 import server_side.database.pojo.AccessRight;
 import server_side.database.pojo.Role;
+import server_side.database.pojo.RoleName;
 import server_side.database.pojo.UserRecord;
 
 import java.sql.SQLException;
@@ -25,6 +26,10 @@ public class SeedHelper {
                 db
         );
 
+        insertAccessRightsForUser(username, accessRights, db);
+    }
+
+    public static void insertAccessRightsForUser(String  username, AccessRight[] accessRights, Database db) throws SQLException {
         for (AccessRight accessRight : accessRights) {
             db.insertAccessRight(username, accessRight);
         }
@@ -33,7 +38,7 @@ public class SeedHelper {
     public static void createUserWithRole(
             String username,
             String password,
-            Role role,
+            RoleName role,
             Database db
     ) throws SQLException {
         createUser(

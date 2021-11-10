@@ -1,4 +1,4 @@
-package server_side.scripts;
+package server_side.scripts.seed;
 
 import server_side.database.Database;
 import server_side.middlewares.authorization.AuthorizationType;
@@ -10,7 +10,7 @@ public class SeedData {
 
     public static void main(String[] args) throws SQLException {
         final Database db = new Database();
-        resetWithSeedData(db, AuthorizationType.ROLE);
+        resetWithSeedData(db, AuthorizationType.ACL);
     }
 
     public static void resetWithSeedData(Database db, AuthorizationType authorizationType) throws SQLException {

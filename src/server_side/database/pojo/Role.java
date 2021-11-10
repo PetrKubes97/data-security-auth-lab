@@ -5,11 +5,11 @@ import java.util.Set;
 
 public class Role {
 
-    public final String name;
+    public final RoleName name;
     public final Set<Role> subRoles;
     public final Set<AccessRight> extraAccessRights;
 
-    public Role(String name, Set<Role> subRoles, Set<AccessRight> extraAccessRights) {
+    public Role(RoleName name, Set<Role> subRoles, Set<AccessRight> extraAccessRights) {
         this.name = name;
         this.subRoles = subRoles;
         this.extraAccessRights = extraAccessRights;

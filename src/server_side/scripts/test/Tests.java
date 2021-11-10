@@ -1,4 +1,4 @@
-package server_side.scripts;
+package server_side.scripts.test;
 
 import server_side.database.Database;
 import server_side.database.pojo.AccessRight;
@@ -7,6 +7,7 @@ import server_side.middlewares.authentication.Authenticator;
 import server_side.middlewares.authorization.*;
 import server_side.responses.LoginResponse;
 import server_side.responses.LoginSuccess;
+import server_side.scripts.seed.SeedData;
 
 import java.sql.SQLException;
 

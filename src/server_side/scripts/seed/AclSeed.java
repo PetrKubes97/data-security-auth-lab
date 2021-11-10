@@ -1,15 +1,11 @@
-package server_side.scripts;
+package server_side.scripts.seed;
 
 import server_side.database.Database;
 import server_side.database.pojo.AccessRight;
-import server_side.database.pojo.UserRecord;
 
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 
-import static server_side.crypto.Crypto.createPasswordHash;
-import static server_side.crypto.Crypto.getNextSalt;
-import static server_side.scripts.SeedHelper.createUserWithAccessRights;
+import static server_side.scripts.seed.SeedHelper.createUserWithAccessRights;
 
 public class AclSeed {
 
